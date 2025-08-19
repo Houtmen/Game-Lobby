@@ -3,14 +3,13 @@ import crypto from 'crypto';
 import { WireGuardManager, WireGuardConfig, WireGuardPeer, VPNSession } from './wireguard';
 
 export class SecureVPNManager extends WireGuardManager {
-  
   /**
    * Generate secure client configuration with split tunneling
    * ONLY routes game traffic through VPN, everything else stays local
    */
   async generateSecureClientConfig(
-    config: WireGuardConfig, 
-    peerIndex: number, 
+    config: WireGuardConfig,
+    peerIndex: number,
     serverEndpoint: string,
     gameSpecificRoutes: string[] = []
   ): Promise<string> {
@@ -21,8 +20,8 @@ export class SecureVPNManager extends WireGuardManager {
 
     // Default game network routes (only these go through VPN)
     const defaultGameRoutes = [
-      '10.0.0.0/24',    // Game session network
-      '192.168.100.0/24' // Alternative game network
+      '10.0.0.0/24', // Game session network
+      '192.168.100.0/24', // Alternative game network
     ];
 
     // Combine default and game-specific routes
@@ -65,26 +64,26 @@ PersistentKeepalive = 25
     }
   ): Promise<VPNSession> {
     console.log(`🔒 Creating privacy-focused VPN for ${gameConfig.gameName}`);
-    
+
     const networkId = `game-${sessionId}`;
     const serverPort = 51820 + Math.floor(Math.random() * 1000);
     const networkCIDR = gameConfig.networkRange || '10.0.0.0/24';
-    
+
     // Generate keys for server
     const serverKeys = await this.generateKeyPair();
-    
+
     // Generate peer configurations with limited scope
     const peers: WireGuardPeer[] = [];
     for (let i = 0; i < participantUserIds.length; i++) {
       const peerKeys = await this.generateKeyPair();
       const peerIP = `10.0.0.${i + 2}`; // Start from .2, .1 is server
-      
+
       peers.push({
         publicKey: peerKeys.publicKey,
         privateKey: peerKeys.privateKey,
         ipAddress: peerIP,
         allowedIPs: [networkCIDR], // Only allow game network
-        port: serverPort
+        port: serverPort,
       });
     }
 
@@ -95,7 +94,7 @@ PersistentKeepalive = 25
       serverAddress: '10.0.0.1',
       serverPort,
       networkCIDR,
-      peers
+      peers,
     };
 
     const vpnSession: VPNSession = {
@@ -105,15 +104,15 @@ PersistentKeepalive = 25
       config,
       isActive: false,
       createdAt: new Date(),
-      participants: participantUserIds
+      participants: participantUserIds,
     };
 
-    this.activeConfigs.set(networkId, vpnSession);
-    
+  this.setActiveSession(networkId, vpnSession);
+
     console.log(`✅ Privacy-focused VPN created for ${gameConfig.gameName}`);
     console.log(`🔒 Only game traffic (${networkCIDR}) will use VPN`);
     console.log(`🌐 All other internet traffic stays on your normal connection`);
-    
+
     return vpnSession;
   }
 

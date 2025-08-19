@@ -18,7 +18,7 @@ export default function SimpleRegisterPage() {
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -31,7 +31,7 @@ export default function SimpleRegisterPage() {
 
     try {
       console.log('📝 Attempting registration with:', { ...formData, password: '***' });
-      
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -62,7 +62,6 @@ export default function SimpleRegisterPage() {
 
       console.log('✅ Registration successful, redirecting to lobby...');
       router.push('/lobby');
-
     } catch (error) {
       console.error('🚨 Registration error:', error);
       setError('Network error. Please try again.');

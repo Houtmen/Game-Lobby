@@ -33,53 +33,52 @@ export class HybridGameNetwork {
    * Smart connection: Try WebRTC first, fallback to VPN
    */
   async smartConnect(
-    sessionId: string, 
+    sessionId: string,
     participantUserIds: string[],
     gameConfig: GameConfig
-  ): Promise<{mode: ConnectionMode; message: string}> {
+  ): Promise<{ mode: ConnectionMode; message: string }> {
     this.sessionId = sessionId;
     console.log(`🎯 Smart connecting to ${gameConfig.gameName}...`);
-    
+
     try {
       // Step 1: Try WebRTC (no download needed)
       console.log('🌐 Attempting WebRTC connection (no download required)...');
-      
+
       const webrtcSession = await this.webrtcNetwork.joinSession(sessionId);
-      
+
       // Set up event handlers
       webrtcSession.onPlayerJoined = (playerId) => {
         console.log(`🎮 Player ${playerId} joined via WebRTC`);
       };
-      
+
       webrtcSession.onGameData = (data, fromPlayer) => {
         console.log(`📡 Game data from ${fromPlayer}:`, data);
       };
-      
+
       // Test connection quality
       const connectionQuality = await this.testWebRTCQuality();
-      
+
       if (connectionQuality.isGoodEnough || !gameConfig.requiresLowLatency) {
         console.log('✅ WebRTC connection successful - no VPN needed!');
         this.currentMode = 'webrtc';
         return {
           mode: 'webrtc',
-          message: `🌐 Connected via browser to ${gameConfig.gameName} - no downloads needed!`
+          message: `🌐 Connected via browser to ${gameConfig.gameName} - no downloads needed!`,
         };
       } else {
         console.log('⚠️ WebRTC quality insufficient for this game, suggesting VPN...');
         // Don't auto-fallback, let user choose
         return {
           mode: 'webrtc',
-          message: `🌐 Connected via WebRTC, but VPN may provide better performance for ${gameConfig.gameName}`
+          message: `🌐 Connected via WebRTC, but VPN may provide better performance for ${gameConfig.gameName}`,
         };
       }
-      
     } catch (webrtcError) {
       console.log('❌ WebRTC failed, VPN option available:', webrtcError);
-      
+
       return {
         mode: 'none',
-        message: `❌ Browser connection failed. VPN download available for ${gameConfig.gameName}`
+        message: `❌ Browser connection failed. VPN download available for ${gameConfig.gameName}`,
       };
     }
   }
@@ -91,10 +90,10 @@ export class HybridGameNetwork {
     sessionId: string,
     participantUserIds: string[],
     gameConfig: GameConfig
-  ): Promise<{success: boolean; message: string; configUrl?: string}> {
+  ): Promise<{ success: boolean; message: string; configUrl?: string }> {
     try {
       console.log(`🔒 Creating VPN connection for ${gameConfig.gameName}...`);
-      
+
       // Create VPN session via API
       const response = await fetch('/api/vpn', {
         method: 'POST',
@@ -104,8 +103,8 @@ export class HybridGameNetwork {
         body: JSON.stringify({
           sessionId,
           participantUserIds,
-          gameConfig
-        })
+          gameConfig,
+        }),
       });
 
       if (!response.ok) {
@@ -115,18 +114,17 @@ export class HybridGameNetwork {
       const vpnResult = await response.json();
 
       this.currentMode = 'vpn';
-      
+
       return {
         success: true,
         message: `🔒 VPN configuration ready for ${gameConfig.gameName}. Download and import into WireGuard.`,
-        configUrl: vpnResult.configUrl
+        configUrl: vpnResult.configUrl,
       };
-      
     } catch (error) {
       console.error('❌ VPN connection failed:', error);
       return {
         success: false,
-        message: `❌ Failed to create VPN connection: ${error}`
+        message: `❌ Failed to create VPN connection: ${error}`,
       };
     }
   }
@@ -134,22 +132,22 @@ export class HybridGameNetwork {
   /**
    * Test WebRTC connection quality
    */
-  private async testWebRTCQuality(): Promise<{isGoodEnough: boolean, latency: number}> {
+  private async testWebRTCQuality(): Promise<{ isGoodEnough: boolean; latency: number }> {
     // Simple ping test through WebRTC
     const startTime = Date.now();
-    
+
     try {
       // Send test data and measure response time
       this.webrtcNetwork.sendGameData({ type: 'ping-test', timestamp: startTime });
-      
+
       // Wait for response (simplified - real implementation would be more robust)
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const latency = Date.now() - startTime;
-      
+
       return {
         isGoodEnough: latency < 100, // Good if under 100ms
-        latency
+        latency,
       };
     } catch (error) {
       return { isGoodEnough: false, latency: 9999 };
@@ -171,23 +169,23 @@ export class HybridGameNetwork {
           mode: 'WebRTC (Browser-based)',
           quality: 'Good',
           privacyLevel: 'High - Direct P2P',
-          userMessage: '🌐 Connected via browser - no downloads needed!'
+          userMessage: '🌐 Connected via browser - no downloads needed!',
         };
-        
+
       case 'vpn':
         return {
           mode: 'Secure VPN',
           quality: 'Excellent',
           privacyLevel: 'Maximum - Encrypted tunnel',
-          userMessage: '🔒 Connected via secure VPN - only game traffic routed'
+          userMessage: '🔒 Connected via secure VPN - only game traffic routed',
         };
-        
+
       default:
         return {
           mode: 'Not connected',
           quality: 'N/A',
           privacyLevel: 'N/A',
-          userMessage: '❌ No active connection'
+          userMessage: '❌ No active connection',
         };
     }
   }
@@ -215,7 +213,7 @@ export class HybridGameNetwork {
       // VPN cleanup handled by VPN manager
       console.log('🔒 VPN session will cleanup automatically');
     }
-    
+
     this.currentMode = 'none';
   }
 }

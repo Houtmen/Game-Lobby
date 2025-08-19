@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import FriendSelector from '@/components/friends/FriendSelector';
+import { GameLauncher } from '@/components/games/GameLauncher';
 
 interface Game {
   id: string;
@@ -47,6 +48,9 @@ export default function BasicLobby() {
   const [showFriendSelector, setShowFriendSelector] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
+  // Get token from localStorage (consistent with Friends page)
+  const getToken = () => localStorage.getItem('accessToken');
+
   useEffect(() => {
     if (user) {
       loadSessions();
@@ -57,10 +61,18 @@ export default function BasicLobby() {
   const loadSessions = async () => {
     try {
       setLoading(true);
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch('/api/sessions', {
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSessions(data.sessions || []);
@@ -77,10 +89,15 @@ export default function BasicLobby() {
 
   const loadGames = async () => {
     try {
+      const token = getToken();
+      if (!token) return;
+
       const response = await fetch('/api/games', {
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setGames(data.games || []);
@@ -97,12 +114,18 @@ export default function BasicLobby() {
     }
 
     try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch('/api/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify({
           name: `${user?.username}'s Game`,
           gameId: games[0].id,
@@ -124,9 +147,17 @@ export default function BasicLobby() {
 
   const joinSession = async (sessionId: string) => {
     try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch(`/api/sessions/${sessionId}/join`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -143,9 +174,17 @@ export default function BasicLobby() {
 
   const leaveSession = async (sessionId: string) => {
     try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch(`/api/sessions/${sessionId}/leave`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -160,11 +199,47 @@ export default function BasicLobby() {
     }
   };
 
+  const startSession = async (sessionId: string) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
+      const response = await fetch(`/api/sessions/${sessionId}/start`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        loadSessions();
+        setError(null);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to start session');
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+      setError('Failed to start session');
+    }
+  };
+
   const deleteSession = async (sessionId: string) => {
     try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -182,13 +257,22 @@ export default function BasicLobby() {
   const scanForGames = async () => {
     try {
       setLoading(true);
+      const token = getToken();
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
       const response = await fetch('/api/games/scan', {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
         await loadGames();
+        setError(null); // Clear any previous errors
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to scan for games');
@@ -216,8 +300,8 @@ export default function BasicLobby() {
     loadSessions();
   };
 
-  const filteredSessions = sessions.filter(session => 
-    showAllSessions || session.status === 'WAITING' || session.status === 'ACTIVE'
+  const filteredSessions = sessions.filter(
+    (session) => showAllSessions || session.status === 'WAITING' || session.status === 'ACTIVE'
   );
 
   if (!user) {
@@ -242,7 +326,7 @@ export default function BasicLobby() {
           <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
             <p className="font-bold">Error</p>
             <p>{error}</p>
-            <button 
+            <button
               onClick={() => setError(null)}
               className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
             >
@@ -289,15 +373,15 @@ export default function BasicLobby() {
             <button
               onClick={() => setShowAllSessions(!showAllSessions)}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                showAllSessions 
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                showAllSessions
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
                   : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
             >
               {showAllSessions ? 'Show Active Only' : 'Show All Sessions'}
             </button>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
@@ -309,34 +393,55 @@ export default function BasicLobby() {
                 {showAllSessions ? 'No sessions found' : 'No active sessions found'}
               </p>
               <p className="text-gray-500">
-                {showAllSessions 
-                  ? 'Create a new session to get started!' 
-                  : 'Create a new session or show all sessions to see inactive ones'
-                }
+                {showAllSessions
+                  ? 'Create a new session to get started!'
+                  : 'Create a new session or show all sessions to see inactive ones'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSessions.map((session) => (
-                <div key={session.id} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors border border-gray-500">
+                <div
+                  key={session.id}
+                  className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors border border-gray-500"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-lg text-white">{session.name}</h3>
-                    <span className={`px-2 py-1 rounded text-sm font-medium ${
-                      session.status === 'WAITING' ? 'bg-green-600 text-green-100' :
-                      session.status === 'STARTING' ? 'bg-yellow-600 text-yellow-100' :
-                      session.status === 'ACTIVE' ? 'bg-blue-600 text-blue-100' :
-                      'bg-gray-600 text-gray-100'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-sm font-medium ${
+                        session.status === 'WAITING'
+                          ? 'bg-green-600 text-green-100'
+                          : session.status === 'STARTING'
+                            ? 'bg-yellow-600 text-yellow-100'
+                            : session.status === 'ACTIVE'
+                              ? 'bg-blue-600 text-blue-100'
+                              : 'bg-gray-600 text-gray-100'
+                      }`}
+                    >
                       {session.status}
                     </span>
                   </div>
-                  
+
                   <p className="text-gray-300 mb-2">Game: {session.game?.name || 'Unknown Game'}</p>
                   <p className="text-gray-400 mb-2">Host: {session.host?.username || 'Unknown'}</p>
                   <p className="text-gray-400 mb-4">
                     Players: {session.players?.length || 0} / {session.maxPlayers}
                   </p>
-                  
+
+                  {/* Game Launcher Integration */}
+                  {session.players?.some((p) => p.user.id === user?.id) &&
+                    session.status === 'ACTIVE' && (
+                      <div className="mb-4 border-t border-gray-600 pt-3">
+                        <GameLauncher
+                          sessionId={session.id}
+                          gameId={session.game?.id || ''}
+                          gameName={session.game?.name || 'Unknown Game'}
+                          gameExecutable={session.game?.executablePath}
+                          vpnRequired={session.game?.requiresVPN}
+                        />
+                      </div>
+                    )}
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500">
                       Created: {new Date(session.createdAt).toLocaleDateString()}
@@ -353,6 +458,13 @@ export default function BasicLobby() {
                                 Invite Friends
                               </button>
                               <button
+                                onClick={() => startSession(session.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded font-medium text-sm"
+                                disabled={!session.players || session.players.length < 1}
+                              >
+                                Start Game
+                              </button>
+                              <button
                                 onClick={() => deleteSession(session.id)}
                                 className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-medium text-sm"
                               >
@@ -361,7 +473,7 @@ export default function BasicLobby() {
                             </>
                           ) : (
                             <>
-                              {session.players?.some(p => p.user.id === user?.id) ? (
+                              {session.players?.some((p) => p.user.id === user?.id) ? (
                                 <button
                                   onClick={() => leaveSession(session.id)}
                                   className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded font-medium text-sm"
@@ -380,6 +492,14 @@ export default function BasicLobby() {
                           )}
                         </>
                       )}
+                      {session.status === 'ACTIVE' &&
+                        session.players?.some((p) => p.user.id === user?.id) && (
+                          <div className="flex gap-2">
+                            <span className="text-green-400 text-sm font-medium">
+                              🎮 Game Active
+                            </span>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

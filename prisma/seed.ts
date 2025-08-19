@@ -2,10 +2,29 @@ import { PrismaClient, GameCategory, Platform } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const initialGames = [
+type SeedGame = {
+  name: string;
+  description: string;
+  version: string;
+  iconUrl: string;
+  bannerUrl: string;
+  supportedPlatforms: Platform[];
+  maxPlayers: number;
+  minPlayers: number;
+  category: GameCategory;
+  tags: string[];
+  releaseYear: number;
+  developer: string;
+  publisher: string;
+  requiresVPN: boolean;
+  networkPorts: number[];
+};
+
+const initialGames: SeedGame[] = [
   {
     name: 'Heroes of Might and Magic II: Gold Edition',
-    description: 'The classic fantasy strategy game where you build armies, cast spells, and conquer kingdoms. Lead one of six different factions in epic battles.',
+    description:
+      'The classic fantasy strategy game where you build armies, cast spells, and conquer kingdoms. Lead one of six different factions in epic battles.',
     version: '1.3',
     iconUrl: '/games/homm2-icon.png',
     bannerUrl: '/games/homm2-banner.jpg',
@@ -22,7 +41,8 @@ const initialGames = [
   },
   {
     name: 'Age of Empires II: Definitive Edition',
-    description: 'The legendary real-time strategy game returns with enhanced graphics and new content. Build your civilization and dominate through the ages.',
+    description:
+      'The legendary real-time strategy game returns with enhanced graphics and new content. Build your civilization and dominate through the ages.',
     version: 'Definitive Edition',
     iconUrl: '/games/aoe2-icon.png',
     bannerUrl: '/games/aoe2-banner.jpg',
@@ -39,7 +59,8 @@ const initialGames = [
   },
   {
     name: 'Warcraft II: Battle.net Edition',
-    description: 'Command orcs or humans in this epic fantasy real-time strategy game. Build bases, gather resources, and lead massive armies into battle.',
+    description:
+      'Command orcs or humans in this epic fantasy real-time strategy game. Build bases, gather resources, and lead massive armies into battle.',
     version: 'Battle.net Edition',
     iconUrl: '/games/wc2-icon.png',
     bannerUrl: '/games/wc2-banner.jpg',
@@ -56,7 +77,8 @@ const initialGames = [
   },
   {
     name: 'Command & Conquer: Tiberian Dawn',
-    description: 'The original real-time strategy masterpiece. Choose between GDI and NOD in the battle for Tiberium supremacy.',
+    description:
+      'The original real-time strategy masterpiece. Choose between GDI and NOD in the battle for Tiberium supremacy.',
     version: 'Remastered Collection',
     iconUrl: '/games/cnc-icon.png',
     bannerUrl: '/games/cnc-banner.jpg',
@@ -73,7 +95,8 @@ const initialGames = [
   },
   {
     name: 'Civilization II',
-    description: 'Build an empire to stand the test of time in this legendary turn-based strategy game. Guide your civilization from the dawn of man to the space age.',
+    description:
+      'Build an empire to stand the test of time in this legendary turn-based strategy game. Guide your civilization from the dawn of man to the space age.',
     version: 'Multiplayer Gold Edition',
     iconUrl: '/games/civ2-icon.png',
     bannerUrl: '/games/civ2-banner.jpg',
@@ -90,7 +113,8 @@ const initialGames = [
   },
   {
     name: 'Diablo',
-    description: 'Descend into the depths of hell in this legendary action RPG. Battle demons, collect loot, and save the town of Tristram.',
+    description:
+      'Descend into the depths of hell in this legendary action RPG. Battle demons, collect loot, and save the town of Tristram.',
     version: 'Hellfire Expansion',
     iconUrl: '/games/diablo-icon.png',
     bannerUrl: '/games/diablo-banner.jpg',
@@ -107,7 +131,8 @@ const initialGames = [
   },
   {
     name: 'StarCraft',
-    description: 'The ultimate sci-fi real-time strategy experience. Command the Terrans, Protoss, or Zerg in epic interstellar warfare.',
+    description:
+      'The ultimate sci-fi real-time strategy experience. Command the Terrans, Protoss, or Zerg in epic interstellar warfare.',
     version: 'Brood War',
     iconUrl: '/games/sc-icon.png',
     bannerUrl: '/games/sc-banner.jpg',
@@ -124,7 +149,8 @@ const initialGames = [
   },
   {
     name: 'Duke Nukem 3D',
-    description: 'Kick ass and chew bubblegum in this classic first-person shooter. Battle alien invaders across multiple episodes.',
+    description:
+      'Kick ass and chew bubblegum in this classic first-person shooter. Battle alien invaders across multiple episodes.',
     version: 'Atomic Edition',
     iconUrl: '/games/duke3d-icon.png',
     bannerUrl: '/games/duke3d-banner.jpg',
@@ -148,26 +174,20 @@ async function main() {
     try {
       // Check if game already exists
       const existingGame = await prisma.game.findFirst({
-        where: { name: gameData.name }
+        where: { name: gameData.name },
       });
-      
+
       if (existingGame) {
         console.log(`⏭️ Game already exists: ${gameData.name}`);
         continue;
       }
-      
-      const game = await prisma.game.create({
+
+    const game = await prisma.game.create({
         data: {
           ...gameData,
-          supportedPlatforms: Array.isArray(gameData.supportedPlatforms) 
-            ? gameData.supportedPlatforms.join(',') 
-            : gameData.supportedPlatforms,
-          tags: Array.isArray(gameData.tags) 
-            ? gameData.tags.join(',') 
-            : gameData.tags,
-          networkPorts: Array.isArray(gameData.networkPorts) 
-            ? gameData.networkPorts.map(p => p.toString()).join(',') 
-            : gameData.networkPorts?.toString() || '',
+      supportedPlatforms: gameData.supportedPlatforms.join(','),
+      tags: gameData.tags.join(','),
+      networkPorts: gameData.networkPorts.map((p) => String(p)).join(','),
         },
       });
       console.log(`✅ Created game: ${game.name}`);

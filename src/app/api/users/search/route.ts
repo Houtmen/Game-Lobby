@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
     const query = url.searchParams.get('q');
 
     if (!query || query.length < 2) {
-      return NextResponse.json({ error: 'Search query must be at least 2 characters' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Search query must be at least 2 characters' },
+        { status: 400 }
+      );
     }
 
     const userId = payload.userId;
@@ -31,41 +34,42 @@ export async function GET(request: NextRequest) {
         AND: [
           {
             username: {
-              contains: query
-            }
+              contains: query,
+            },
           },
           {
             id: {
-              not: userId // Exclude the current user
-            }
-          }
-        ]
+              not: userId, // Exclude the current user
+            },
+          },
+        ],
       },
       select: {
         id: true,
         username: true,
         avatar: true,
         isOnline: true,
-        lastSeen: true
+        lastSeen: true,
       },
-      take: 20 // Limit results
+      take: 20, // Limit results
     });
 
     // Get existing friendships to show status
     const friendships = await prisma.friendship.findMany({
       where: {
         OR: [
-          { senderId: userId, receiverId: { in: users.map(u => u.id) } },
-          { senderId: { in: users.map(u => u.id) }, receiverId: userId }
-        ]
-      }
+          { senderId: userId, receiverId: { in: users.map((u) => u.id) } },
+          { senderId: { in: users.map((u) => u.id) }, receiverId: userId },
+        ],
+      },
     });
 
     // Add friendship status to each user
-    const usersWithStatus = users.map(user => {
-      const friendship = friendships.find(f => 
-        (f.senderId === userId && f.receiverId === user.id) ||
-        (f.senderId === user.id && f.receiverId === userId)
+    const usersWithStatus = users.map((user) => {
+      const friendship = friendships.find(
+        (f) =>
+          (f.senderId === userId && f.receiverId === user.id) ||
+          (f.senderId === user.id && f.receiverId === userId)
       );
 
       let friendshipStatus = 'none';
@@ -86,12 +90,11 @@ export async function GET(request: NextRequest) {
       return {
         ...user,
         friendshipStatus,
-        friendshipId: friendship?.id
+        friendshipId: friendship?.id,
       };
     });
 
     return NextResponse.json({ users: usersWithStatus });
-
   } catch (error) {
     console.error('User search error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

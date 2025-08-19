@@ -20,16 +20,54 @@ export interface DetectedGame {
   detectionMethod: 'registry' | 'filesystem' | 'manual';
 }
 
-// Common game installation paths
-const COMMON_GAME_PATHS = [
-  'C:\\Program Files (x86)\\Steam\\steamapps\\common',
-  'C:\\Program Files\\Steam\\steamapps\\common',
-  'C:\\GOG Games',
-  'C:\\Program Files (x86)\\GOG Galaxy\\Games',
-  'C:\\Games',
-  'D:\\Games',
-  'E:\\Games',
-];
+// Common game installation paths - more comprehensive scanning
+const getCommonGamePaths = () => {
+  const paths = [
+    // Steam paths
+    'C:\\Program Files (x86)\\Steam\\steamapps\\common',
+    'C:\\Program Files\\Steam\\steamapps\\common',
+    'D:\\Steam\\steamapps\\common',
+    'E:\\Steam\\steamapps\\common',
+
+    // GOG paths
+    'C:\\GOG Games',
+    'D:\\GOG Games',
+    'E:\\GOG Games',
+    'C:\\Program Files (x86)\\GOG Galaxy\\Games',
+    'C:\\Program Files\\GOG Galaxy\\Games',
+
+    // Epic Games
+    'C:\\Program Files\\Epic Games',
+    'C:\\Program Files (x86)\\Epic Games',
+
+    // Origin/EA
+    'C:\\Program Files (x86)\\Origin Games',
+    'C:\\Program Files\\Origin Games',
+
+    // Generic game directories
+    'C:\\Games',
+    'D:\\Games',
+    'E:\\Games',
+    'F:\\Games',
+
+    // Program Files
+    'C:\\Program Files (x86)',
+    'C:\\Program Files',
+    'D:\\Program Files',
+    'E:\\Program Files',
+
+    // User directories
+    ...(process.env.USERPROFILE
+      ? [
+          `${process.env.USERPROFILE}\\Desktop`,
+          `${process.env.USERPROFILE}\\Documents\\Games`,
+          `${process.env.USERPROFILE}\\Downloads`,
+        ]
+      : []),
+  ].filter(Boolean);
+
+  return paths;
+};
 
 // Known game signatures
 const GAME_SIGNATURES = [
@@ -78,47 +116,75 @@ const GAME_SIGNATURES = [
     maxPlayers: 7,
     minPlayers: 2,
   },
+  // Test game - any .exe file in a "test" folder
+  {
+    name: 'Test Game',
+    executable: 'test.exe',
+    alternativeExecutables: ['game.exe', 'app.exe', 'main.exe'],
+    folderPatterns: ['test', 'demo', 'sample'],
+    category: 'STRATEGY',
+    maxPlayers: 4,
+    minPlayers: 2,
+  },
 ];
 
 export class GameLibraryScanner {
-  
-  async scanForGames(): Promise<DetectedGame[]> {
+  async scanForGames(customPaths: string[] = []): Promise<DetectedGame[]> {
     const detectedGames: DetectedGame[] = [];
-    
-    // Scan common installation paths
-    for (const basePath of COMMON_GAME_PATHS) {
+
+    console.log('🔍 Starting game scan...');
+
+    // Get all paths to scan (common + custom)
+    const commonPaths = getCommonGamePaths();
+    const allPaths = [...commonPaths, ...customPaths];
+
+    console.log(
+      `📁 Scanning ${allPaths.length} paths (${commonPaths.length} common + ${customPaths.length} custom)`
+    );
+
+    // Scan all paths
+    for (const basePath of allPaths) {
       try {
-        const games = await this.scanDirectory(basePath);
-        detectedGames.push(...games);
+        const exists = fs.existsSync(basePath);
+
+        if (exists) {
+          console.log(`📁 Scanning: ${basePath}`);
+          const games = await this.scanDirectory(basePath);
+          if (games.length > 0) {
+            console.log(`   Found ${games.length} games`);
+          }
+          detectedGames.push(...games);
+        }
       } catch (error) {
-        // Directory doesn't exist or can't be accessed, continue
-        console.log(`Skipping ${basePath}: ${error}`);
+        // Directory doesn't exist or can't be accessed, continue silently
       }
     }
-    
+
+    console.log(`🎮 Scan complete: ${detectedGames.length} games detected`);
     return this.deduplicateGames(detectedGames);
   }
-  
+
   private async scanDirectory(dirPath: string): Promise<DetectedGame[]> {
     const games: DetectedGame[] = [];
-    
+
     try {
       const exists = fs.existsSync(dirPath);
       if (!exists) return games;
-      
+
       const entries = await readdir(dirPath);
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry);
         const stats = await stat(fullPath);
-        
+
         if (stats.isDirectory()) {
           // Check if this directory contains any known games
           const game = await this.checkDirectoryForGame(fullPath, entry);
           if (game) {
+            console.log(`  🎮 Found: ${game.name} at ${game.executable}`);
             games.push(game);
           }
-          
+
           // Recursively scan subdirectories (max depth 2 to avoid deep scanning)
           if (fullPath.split(path.sep).length - dirPath.split(path.sep).length < 2) {
             const subGames = await this.scanDirectory(fullPath);
@@ -127,28 +193,31 @@ export class GameLibraryScanner {
         }
       }
     } catch (error) {
-      console.error(`Error scanning directory ${dirPath}:`, error);
+      // Silently skip directories we can't access
     }
-    
+
     return games;
   }
-  
-  private async checkDirectoryForGame(dirPath: string, dirName: string): Promise<DetectedGame | null> {
+
+  private async checkDirectoryForGame(
+    dirPath: string,
+    dirName: string
+  ): Promise<DetectedGame | null> {
     try {
       const files = await readdir(dirPath);
-      
+
       for (const signature of GAME_SIGNATURES) {
         // Check if folder name matches game patterns
-        const folderMatches = signature.folderPatterns.some(pattern => 
+        const folderMatches = signature.folderPatterns.some((pattern) =>
           dirName.toLowerCase().includes(pattern.toLowerCase())
         );
-        
+
         if (folderMatches) {
           // Look for the main executable
-          const mainExe = files.find(file => 
-            file.toLowerCase() === signature.executable.toLowerCase()
+          const mainExe = files.find(
+            (file) => file.toLowerCase() === signature.executable.toLowerCase()
           );
-          
+
           if (mainExe) {
             const executablePath = path.join(dirPath, mainExe);
             return {
@@ -163,13 +232,11 @@ export class GameLibraryScanner {
               detectionMethod: 'filesystem',
             };
           }
-          
+
           // Look for alternative executables
           for (const altExe of signature.alternativeExecutables) {
-            const foundExe = files.find(file => 
-              file.toLowerCase() === altExe.toLowerCase()
-            );
-            
+            const foundExe = files.find((file) => file.toLowerCase() === altExe.toLowerCase());
+
             if (foundExe) {
               const executablePath = path.join(dirPath, foundExe);
               return {
@@ -188,15 +255,15 @@ export class GameLibraryScanner {
         }
       }
     } catch (error) {
-      // Can't read directory, skip
+      // Can't read directory, skip silently
     }
-    
+
     return null;
   }
-  
+
   private deduplicateGames(games: DetectedGame[]): DetectedGame[] {
     const seen = new Set<string>();
-    return games.filter(game => {
+    return games.filter((game) => {
       const key = `${game.name}:${game.executable}`;
       if (seen.has(key)) {
         return false;
@@ -205,13 +272,70 @@ export class GameLibraryScanner {
       return true;
     });
   }
-  
+
   async validateGameExecutable(executablePath: string): Promise<boolean> {
     try {
       const stats = await stat(executablePath);
       return stats.isFile() && path.extname(executablePath).toLowerCase() === '.exe';
     } catch {
       return false;
+    }
+  }
+
+  async addGameByPath(executablePath: string, gameName?: string): Promise<DetectedGame | null> {
+    try {
+      // Validate the executable exists
+      if (!(await this.validateGameExecutable(executablePath))) {
+        return null;
+      }
+
+      const fileName = path.basename(executablePath, '.exe');
+      const dirName = path.basename(path.dirname(executablePath));
+
+      // Try to match against known signatures first
+      for (const signature of GAME_SIGNATURES) {
+        const executableMatches =
+          executablePath
+            .toLowerCase()
+            .includes(signature.executable.toLowerCase().replace('.exe', '')) ||
+          signature.alternativeExecutables.some((alt) =>
+            executablePath.toLowerCase().includes(alt.toLowerCase().replace('.exe', ''))
+          );
+
+        const folderMatches = signature.folderPatterns.some((pattern) =>
+          dirName.toLowerCase().includes(pattern.toLowerCase())
+        );
+
+        if (executableMatches || folderMatches) {
+          return {
+            name: signature.name,
+            executable: executablePath,
+            description: `Manually added: ${signature.name}`,
+            category: signature.category,
+            supportedPlatforms: ['WINDOWS'],
+            maxPlayers: signature.maxPlayers,
+            minPlayers: signature.minPlayers,
+            vpnRequired: true,
+            detectionMethod: 'manual',
+          };
+        }
+      }
+
+      // If no signature match, create generic game entry
+      return {
+        name: gameName || fileName,
+        executable: executablePath,
+        description: `Manually added: ${gameName || fileName}`,
+        category: 'STRATEGY',
+        supportedPlatforms: ['WINDOWS'],
+        maxPlayers: 8,
+        minPlayers: 2,
+        vpnRequired: true,
+        detectionMethod: 'manual',
+      };
+    } catch (error) {
+      console.error('Error adding game by path:', error);
+      return null;
     }
   }
 }

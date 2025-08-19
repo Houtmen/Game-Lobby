@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/auth/utils';
 
 // Type definitions
 interface ApiResponse {
@@ -45,19 +46,19 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {};
-    
+
     if (status) {
       where.status = status;
     }
-    
+
     if (gameId) {
       where.gameId = gameId;
     }
-    
+
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -75,15 +76,15 @@ export async function GET(request: NextRequest) {
               networkPorts: true,
               requiresVPN: true,
               executablePath: true,
-              launchParameters: true
-            }
+              launchParameters: true,
+            },
           },
           host: {
             select: {
               id: true,
               username: true,
-              avatar: true
-            }
+              avatar: true,
+            },
           },
           players: {
             include: {
@@ -91,20 +92,20 @@ export async function GET(request: NextRequest) {
                 select: {
                   id: true,
                   username: true,
-                  avatar: true
-                }
-              }
-            }
-          }
+                  avatar: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip: offset,
         take: limit,
       }),
-      prisma.gameSession.count({ where })
+      prisma.gameSession.count({ where }),
     ]);
 
-    const response: PaginatedResponse<typeof sessions[0]> = {
+    const response: PaginatedResponse<(typeof sessions)[0]> = {
       success: true,
       data: sessions,
       pagination: {
@@ -117,7 +118,6 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error('Error fetching sessions:', error);
     return NextResponse.json(
@@ -131,53 +131,27 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('📝 Session creation request received');
-    
-    // Authenticate user
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    
-    if (!token) {
+
+    // Authenticate user using cookie-based auth (consistent with other APIs)
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' } satisfies ApiResponse,
         { status: 401 }
       );
     }
 
-    // Verify JWT and get user
-    const { verifyAccessToken } = await import('@/lib/auth/jwt');
-    const userPayload = verifyAccessToken(token);
-    
-    if (!userPayload) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid authentication token' } satisfies ApiResponse,
-        { status: 401 }
-      );
-    }
-
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userPayload.userId }
-    });
-
-    console.log('👤 Authenticated user:', user ? `${user.username} (${user.id})` : 'Not found');
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' } satisfies ApiResponse,
-        { status: 404 }
-      );
-    }
-    
     const body = await request.json();
     console.log('📋 Request body:', body);
-    
+
     const sessionData = createSessionSchema.parse(body);
     console.log('✅ Schema validation passed:', sessionData);
 
     // Verify the game exists
     console.log('🎮 Looking for game with ID:', sessionData.gameId);
     const game = await prisma.game.findUnique({
-      where: { id: sessionData.gameId }
+      where: { id: sessionData.gameId },
     });
 
     console.log('🎯 Game found:', game ? `${game.name} (${game.id})` : 'Not found');
@@ -185,14 +159,14 @@ export async function POST(request: NextRequest) {
     if (!game) {
       // List available games for debugging
       const availableGames = await prisma.game.findMany({
-        select: { id: true, name: true }
+        select: { id: true, name: true },
       });
       console.log('📚 Available games:', availableGames);
-      
+
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `Game not found. Available games: ${availableGames.map(g => g.name).join(', ')}`
+        {
+          success: false,
+          error: `Game not found. Available games: ${availableGames.map((g) => g.name).join(', ')}`,
         } satisfies ApiResponse,
         { status: 404 }
       );
@@ -214,9 +188,9 @@ export async function POST(request: NextRequest) {
         players: {
           create: {
             userId: user.id,
-            status: 'JOINED'
-          }
-        }
+            status: 'JOINED',
+          },
+        },
       },
       include: {
         game: {
@@ -224,15 +198,15 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             iconUrl: true,
-            maxPlayers: true
-          }
+            maxPlayers: true,
+          },
         },
         host: {
           select: {
             id: true,
             username: true,
-            avatar: true
-          }
+            avatar: true,
+          },
         },
         players: {
           include: {
@@ -240,30 +214,29 @@ export async function POST(request: NextRequest) {
               select: {
                 id: true,
                 username: true,
-                avatar: true
-              }
-            }
-          }
-        }
-      }
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json(
-      { 
-        success: true, 
+      {
+        success: true,
         data: newSession,
-        message: 'Session created successfully'
+        message: 'Session created successfully',
       } satisfies ApiResponse,
       { status: 201 }
     );
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('❌ Validation error:', error.errors);
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: `Validation failed: ${error.errors.map(e => e.message).join(', ')}`
+          error: `Validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
         } satisfies ApiResponse,
         { status: 400 }
       );

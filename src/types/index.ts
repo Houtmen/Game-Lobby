@@ -1,20 +1,20 @@
-import { DefaultSession } from "next-auth"
+import { DefaultSession } from 'next-auth';
 
 // Extend NextAuth types
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
-      id: string
-      username: string
-      provider: string
-      avatar?: string
-    } & DefaultSession["user"]
+      id: string;
+      username: string;
+      provider: string;
+      avatar?: string;
+    } & DefaultSession['user'];
   }
 
   interface User {
-    username: string
-    provider: string
-    avatar?: string
+    username: string;
+    provider: string;
+    avatar?: string;
   }
 }
 
@@ -72,15 +72,18 @@ export interface Game {
   id: string;
   name: string;
   description: string;
-  executable: string;
+  executable: string; // legacy alias for executablePath
+  executablePath?: string;
   iconUrl?: string;
   bannerUrl?: string;
+  category?: string;
   networkProtocol: 'tcp' | 'udp' | 'ipx';
   defaultPort: number;
   portRange?: { min: number; max: number };
   maxPlayers: number;
   minPlayers: number;
-  vpnRequired: boolean;
+  vpnRequired: boolean; // legacy alias
+  requiresVPN?: boolean;
   launchParameters?: string[];
   supportedPlatforms: ('windows' | 'mac' | 'linux')[];
   isActive: boolean;
@@ -172,7 +175,7 @@ export interface SocketEvents {
   'user:join': (data: { sessionId: string; user: User }) => void;
   'user:leave': (data: { sessionId: string; userId: string }) => void;
   'user:ready': (data: { sessionId: string; userId: string; isReady: boolean }) => void;
-  
+
   // Session events
   'session:created': (session: GameSession) => void;
   'session:updated': (session: GameSession) => void;
@@ -181,15 +184,15 @@ export interface SocketEvents {
   'session:player-left': (data: { sessionId: string; userId: string }) => void;
   'session:started': (data: { sessionId: string; vpnConfig: VPNNetwork }) => void;
   'session:ended': (sessionId: string) => void;
-  
+
   // Chat events
   'chat:message': (message: ChatMessage) => void;
   'chat:typing': (data: { sessionId: string; userId: string; isTyping: boolean }) => void;
-  
+
   // VPN events
   'vpn:config': (config: VPNPeer) => void;
   'vpn:status': (data: { sessionId: string; userId: string; isConnected: boolean }) => void;
-  
+
   // Game events
   'game:launch': (data: { sessionId: string; gameConfig: Game; vpnConfig: VPNPeer }) => void;
   'game:status': (data: { sessionId: string; userId: string; status: string }) => void;

@@ -1,119 +1,91 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, SubscriptionTier, GameCategory } from '@prisma/client';
 import { hashPassword } from '../src/lib/auth/jwt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Seeding database (simple)...');
 
-  // Create sample games
   const games = [
     {
       name: 'Heroes of Might and Magic II',
-      description: 'Classic fantasy turn-based strategy game with heroes, armies, and magical kingdoms.',
+      description: 'Classic fantasy turn-based strategy game with heroes and magic.',
       version: '1.3',
       executablePath: 'HEROES2.EXE',
-      isInstalled: false,
-      genre: 'Strategy',
-      releaseYear: 1996,
+      supportedPlatforms: 'WINDOWS',
       maxPlayers: 6,
+      minPlayers: 2,
+      category: GameCategory.STRATEGY,
+      tags: 'fantasy,turn-based,strategy',
+      releaseYear: 1996,
+      developer: 'New World Computing',
+      publisher: '3DO',
       bannerUrl: 'https://example.com/heroes2-banner.jpg',
-      iconUrl: 'https://example.com/heroes2-icon.png'
+      iconUrl: 'https://example.com/heroes2-icon.png',
     },
     {
       name: 'Age of Empires II',
       description: 'Medieval real-time strategy game featuring civilizations and epic battles.',
       version: 'HD Edition',
       executablePath: 'AoK HD.exe',
-      isInstalled: false,
-      genre: 'Real-time Strategy',
-      releaseYear: 1999,
+      supportedPlatforms: 'WINDOWS',
       maxPlayers: 8,
+      minPlayers: 2,
+      category: GameCategory.STRATEGY,
+      tags: 'medieval,real-time,strategy',
+      releaseYear: 1999,
+      developer: 'Ensemble Studios',
+      publisher: 'Microsoft',
       bannerUrl: 'https://example.com/aoe2-banner.jpg',
-      iconUrl: 'https://example.com/aoe2-icon.png'
+      iconUrl: 'https://example.com/aoe2-icon.png',
     },
     {
       name: 'Warcraft II: Tides of Darkness',
       description: 'Fantasy real-time strategy game with orcs, humans, and naval combat.',
       version: 'Battle.net Edition',
       executablePath: 'Warcraft II BNE.exe',
-      isInstalled: false,
-      genre: 'Real-time Strategy',
+      supportedPlatforms: 'WINDOWS',
+      maxPlayers: 8,
+      minPlayers: 2,
+      category: GameCategory.STRATEGY,
+      tags: 'fantasy,real-time,strategy',
       releaseYear: 1995,
-      maxPlayers: 8,
+      developer: 'Blizzard Entertainment',
+      publisher: 'Blizzard Entertainment',
       bannerUrl: 'https://example.com/warcraft2-banner.jpg',
-      iconUrl: 'https://example.com/warcraft2-icon.png'
-    },
-    {
-      name: 'Command & Conquer: Red Alert',
-      description: 'Alternate history real-time strategy with Soviet and Allied forces.',
-      version: 'Remastered',
-      executablePath: 'RedAlert.exe',
-      isInstalled: false,
-      genre: 'Real-time Strategy',
-      releaseYear: 1996,
-      maxPlayers: 8,
-      bannerUrl: 'https://example.com/redalert-banner.jpg',
-      iconUrl: 'https://example.com/redalert-icon.png'
-    },
-    {
-      name: 'Civilization II',
-      description: 'Turn-based strategy game where you build an empire to stand the test of time.',
-      version: 'Multiplayer Gold Edition',
-      executablePath: 'civ2.exe',
-      isInstalled: false,
-      genre: 'Turn-based Strategy',
-      releaseYear: 1996,
-      maxPlayers: 7,
-      bannerUrl: 'https://example.com/civ2-banner.jpg',
-      iconUrl: 'https://example.com/civ2-icon.png'
-    },
-    {
-      name: 'StarCraft',
-      description: 'Sci-fi real-time strategy with three unique races: Terran, Protoss, and Zerg.',
-      version: 'Brood War',
-      executablePath: 'StarCraft.exe',
-      isInstalled: false,
-      genre: 'Real-time Strategy',
-      releaseYear: 1998,
-      maxPlayers: 8,
-      bannerUrl: 'https://example.com/starcraft-banner.jpg',
-      iconUrl: 'https://example.com/starcraft-icon.png'
+      iconUrl: 'https://example.com/warcraft2-icon.png',
     },
     {
       name: 'Diablo',
-      description: 'Dark fantasy action RPG with dungeon crawling and demon slaying.',
+      description: 'Dark action RPG set in the gothic fantasy town of Tristram.',
       version: 'Hellfire',
       executablePath: 'Diablo.exe',
-      isInstalled: false,
-      genre: 'Action RPG',
-      releaseYear: 1996,
+      supportedPlatforms: 'WINDOWS',
       maxPlayers: 4,
+      minPlayers: 1,
+      category: GameCategory.RPG,
+      tags: 'action,rpg,dark-fantasy',
+      releaseYear: 1996,
+      developer: 'Blizzard North',
+      publisher: 'Blizzard Entertainment',
       bannerUrl: 'https://example.com/diablo-banner.jpg',
-      iconUrl: 'https://example.com/diablo-icon.png'
+      iconUrl: 'https://example.com/diablo-icon.png',
     },
-    {
-      name: 'Total Annihilation',
-      description: 'Epic-scale real-time strategy with massive robot armies and 3D terrain.',
-      version: 'Core Contingency',
-      executablePath: 'TotalA.exe',
-      isInstalled: false,
-      genre: 'Real-time Strategy',
-      releaseYear: 1997,
-      maxPlayers: 10,
-      bannerUrl: 'https://example.com/ta-banner.jpg',
-      iconUrl: 'https://example.com/ta-icon.png'
-    }
   ];
 
-  console.log('Creating games...');
+  console.log('🎮 Creating games...');
   for (const gameData of games) {
-    const game = await prisma.game.upsert({
-      where: { name: gameData.name },
-      update: {},
-      create: gameData,
-    });
-    console.log(`✓ Created game: ${game.name}`);
+    try {
+      const existing = await prisma.game.findFirst({ where: { name: gameData.name } });
+      if (existing) {
+        console.log(`⏭️  Game already exists: ${gameData.name}`);
+        continue;
+      }
+      const game = await prisma.game.create({ data: gameData });
+      console.log(`✅ Created game: ${game.name}`);
+    } catch (error: any) {
+      console.error(`❌ Error creating game ${gameData.name}:`, error.message);
+    }
   }
 
   // Create a sample user for testing
@@ -127,13 +99,12 @@ async function main() {
       password: hashedPassword,
       firstName: 'Test',
       lastName: 'User',
-      subscriptionTier: 'FREE',
+      subscriptionTier: SubscriptionTier.FREE,
     },
   });
 
-  console.log(`✓ Created test user: ${testUser.username} (password: password123)`);
-
-  console.log('🌱 Seeding completed successfully!');
+  console.log(`👤 Created test user: ${testUser.username} (password: password123)`);
+  console.log('🌱 Seeding (simple) completed successfully!');
 }
 
 main()

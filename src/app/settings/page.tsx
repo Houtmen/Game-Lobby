@@ -3,11 +3,18 @@
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
+  type Settings = {
+    timezone: string;
+    language: string;
+    defaultVpnConnection: 'webrtc' | 'wireguard';
+    theme: 'dark' | 'light';
+  };
+
+  const [settings, setSettings] = useState<Settings>({
     timezone: 'UTC',
     language: 'en',
     defaultVpnConnection: 'webrtc',
-    theme: 'dark'
+    theme: 'dark',
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -29,7 +36,7 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       localStorage.setItem('user_settings', JSON.stringify(settings));
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setSaveMessage('Settings saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
@@ -40,10 +47,10 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSettingChange = (key, value) => {
-    setSettings(prev => ({
+  const handleSettingChange = (key: keyof Settings, value: Settings[typeof key]) => {
+    setSettings((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
@@ -61,7 +68,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Language</label>
-                <select 
+                <select
                   value={settings.language}
                   onChange={(e) => handleSettingChange('language', e.target.value)}
                   className="w-full bg-gray-700 text-white rounded-md px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
@@ -75,7 +82,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Timezone</label>
-                <select 
+                <select
                   value={settings.timezone}
                   onChange={(e) => handleSettingChange('timezone', e.target.value)}
                   className="w-full bg-gray-700 text-white rounded-md px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
@@ -88,7 +95,9 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Website Theme</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">
+                  Website Theme
+                </label>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
@@ -120,7 +129,9 @@ export default function SettingsPage() {
           <div className="bg-gray-800 rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Network Settings</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Default VPN Connection</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Default VPN Connection
+              </label>
               <div className="space-y-3">
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
@@ -162,7 +173,13 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center space-x-4">
                 {saveMessage && (
-                  <span className={saveMessage.includes('successfully') ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>
+                  <span
+                    className={
+                      saveMessage.includes('successfully')
+                        ? 'text-green-400 text-sm'
+                        : 'text-red-400 text-sm'
+                    }
+                  >
                     {saveMessage}
                   </span>
                 )}

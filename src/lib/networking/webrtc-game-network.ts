@@ -24,7 +24,7 @@ export class WebRTCGameNetwork {
    */
   async createSession(sessionId: string): Promise<WebRTCGameSession> {
     console.log('🌐 Creating WebRTC game session (no VPN required)...');
-    
+
     this.session = {
       sessionId,
       isHost: true,
@@ -34,7 +34,7 @@ export class WebRTCGameNetwork {
 
     // Connect to signaling server for initial peer discovery
     await this.connectToSignalServer(sessionId);
-    
+
     return this.session;
   }
 
@@ -43,7 +43,7 @@ export class WebRTCGameNetwork {
    */
   async joinSession(sessionId: string): Promise<WebRTCGameSession> {
     console.log('🚪 Joining WebRTC game session (no VPN required)...');
-    
+
     this.session = {
       sessionId,
       isHost: false,
@@ -52,7 +52,7 @@ export class WebRTCGameNetwork {
     };
 
     await this.connectToSignalServer(sessionId);
-    
+
     return this.session;
   }
 
@@ -65,11 +65,13 @@ export class WebRTCGameNetwork {
 
     this.signalServer.onopen = () => {
       console.log('✅ Connected to signaling server');
-      this.signalServer?.send(JSON.stringify({
-        type: 'join-session',
-        sessionId,
-        userId: this.localUserId
-      }));
+      this.signalServer?.send(
+        JSON.stringify({
+          type: 'join-session',
+          sessionId,
+          userId: this.localUserId,
+        })
+      );
     };
 
     this.signalServer.onmessage = (event) => {
@@ -86,19 +88,19 @@ export class WebRTCGameNetwork {
       case 'new-peer':
         await this.createPeerConnection(message.userId);
         break;
-        
+
       case 'ice-candidate':
         await this.handleIceCandidate(message.userId, message.candidate);
         break;
-        
+
       case 'offer':
         await this.handleOffer(message.userId, message.offer);
         break;
-        
+
       case 'answer':
         await this.handleAnswer(message.userId, message.answer);
         break;
-        
+
       case 'peer-left':
         this.handlePeerLeft(message.userId);
         break;
@@ -112,13 +114,13 @@ export class WebRTCGameNetwork {
     const peerConnection = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' }, // Free STUN server
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
     });
 
     // Create data channel for game communication
     const dataChannel = peerConnection.createDataChannel('gameData', {
-      ordered: true // Ensure game state updates arrive in order
+      ordered: true, // Ensure game state updates arrive in order
     });
 
     dataChannel.onopen = () => {
@@ -134,11 +136,13 @@ export class WebRTCGameNetwork {
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        this.signalServer?.send(JSON.stringify({
-          type: 'ice-candidate',
-          targetUser: remoteUserId,
-          candidate: event.candidate
-        }));
+        this.signalServer?.send(
+          JSON.stringify({
+            type: 'ice-candidate',
+            targetUser: remoteUserId,
+            candidate: event.candidate,
+          })
+        );
       }
     };
 
@@ -150,12 +154,14 @@ export class WebRTCGameNetwork {
     if (this.session?.isHost) {
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-      
-      this.signalServer?.send(JSON.stringify({
-        type: 'offer',
-        targetUser: remoteUserId,
-        offer: offer
-      }));
+
+      this.signalServer?.send(
+        JSON.stringify({
+          type: 'offer',
+          targetUser: remoteUserId,
+          offer: offer,
+        })
+      );
     }
   }
 
@@ -164,7 +170,7 @@ export class WebRTCGameNetwork {
    */
   sendGameData(data: any): void {
     const message = JSON.stringify(data);
-    
+
     this.session?.dataChannels.forEach((channel, userId) => {
       if (channel.readyState === 'open') {
         channel.send(message);
@@ -194,7 +200,7 @@ export class WebRTCGameNetwork {
    */
   async leaveSession(): Promise<void> {
     console.log('👋 Leaving WebRTC session...');
-    
+
     // Close all peer connections
     this.session?.peers.forEach((peer) => {
       peer.close();
@@ -202,7 +208,7 @@ export class WebRTCGameNetwork {
 
     // Close signaling connection
     this.signalServer?.close();
-    
+
     this.session = null;
   }
 
@@ -219,12 +225,14 @@ export class WebRTCGameNetwork {
       await peer.setRemoteDescription(offer);
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
-      
-      this.signalServer?.send(JSON.stringify({
-        type: 'answer',
-        targetUser: userId,
-        answer: answer
-      }));
+
+      this.signalServer?.send(
+        JSON.stringify({
+          type: 'answer',
+          targetUser: userId,
+          answer: answer,
+        })
+      );
     }
   }
 
@@ -237,7 +245,7 @@ export class WebRTCGameNetwork {
 
   private handlePeerLeft(userId: string): void {
     console.log(`👋 Player ${userId} left the session`);
-    
+
     const peer = this.session?.peers.get(userId);
     if (peer) {
       peer.close();

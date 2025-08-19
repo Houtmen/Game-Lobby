@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  FaShieldAlt, 
-  FaPlay, 
-  FaStop, 
-  FaDownload, 
+import {
+  FaShieldAlt,
+  FaPlay,
+  FaStop,
+  FaDownload,
   FaNetworkWired,
   FaUsers,
   FaExclamationTriangle,
   FaCheckCircle,
   FaCog,
-  FaInfoCircle
+  FaInfoCircle,
 } from 'react-icons/fa';
 import WireGuardSetup from './WireGuardSetup';
 
@@ -49,7 +49,7 @@ export default function VPNManager({
   gameRequiresVPN,
   isHost,
   participants,
-  serverEndpoint = 'your-server-ip.com'
+  serverEndpoint = 'your-server-ip.com',
 }: VPNManagerProps) {
   const [vpnSession, setVPNSession] = useState<VPNSession | null>(null);
   const [vpnStatus, setVPNStatus] = useState<VPNStatus | null>(null);
@@ -83,18 +83,16 @@ export default function VPNManager({
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/vpn/status', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
         const status = await response.json();
         setVPNStatus(status);
-        
+
         // Check if there's an active VPN for this session
-        const sessionVPN = status.userVPNSessions.find(
-          (vpn: any) => vpn.sessionId === sessionId
-        );
+        const sessionVPN = status.userVPNSessions.find((vpn: any) => vpn.sessionId === sessionId);
         if (sessionVPN) {
           setVPNSession({
             id: sessionVPN.networkId,
@@ -102,7 +100,7 @@ export default function VPNManager({
             networkId: sessionVPN.networkId,
             isActive: sessionVPN.isActive,
             createdAt: sessionVPN.createdAt,
-            participants: participants.map(p => p.userId)
+            participants: participants.map((p) => p.userId),
           });
         }
       }
@@ -114,16 +112,16 @@ export default function VPNManager({
   const createVPNNetwork = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/vpn', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ sessionId })
+        body: JSON.stringify({ sessionId }),
       });
 
       if (response.ok) {
@@ -144,7 +142,7 @@ export default function VPNManager({
 
   const startVPN = async () => {
     if (!vpnSession) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -153,12 +151,12 @@ export default function VPNManager({
       const response = await fetch(`/api/vpn/${vpnSession.networkId}/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
-        setVPNSession(prev => prev ? { ...prev, isActive: true } : null);
+        setVPNSession((prev) => (prev ? { ...prev, isActive: true } : null));
         await checkVPNStatus();
       } else {
         const errorData = await response.json();
@@ -174,7 +172,7 @@ export default function VPNManager({
 
   const stopVPN = async () => {
     if (!vpnSession) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -183,12 +181,12 @@ export default function VPNManager({
       const response = await fetch(`/api/vpn/${vpnSession.networkId}/start`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
-        setVPNSession(prev => prev ? { ...prev, isActive: false } : null);
+        setVPNSession((prev) => (prev ? { ...prev, isActive: false } : null));
         await checkVPNStatus();
       } else {
         const errorData = await response.json();
@@ -211,8 +209,8 @@ export default function VPNManager({
         `/api/vpn/${vpnSession.networkId}/config?endpoint=${encodeURIComponent(serverEndpoint)}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -291,7 +289,7 @@ export default function VPNManager({
             <p className="text-sm text-gray-600">Secure network for multiplayer gaming</p>
           </div>
         </div>
-        
+
         <button
           onClick={() => setShowInstructions(!showInstructions)}
           className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
@@ -328,7 +326,7 @@ export default function VPNManager({
               )}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Active Sessions:</span>
@@ -371,9 +369,7 @@ export default function VPNManager({
                 <FaUsers className="w-3 h-3" />
                 <span>{participants.length} participants</span>
               </div>
-              <div>
-                Created: {new Date(vpnSession.createdAt).toLocaleString()}
-              </div>
+              <div>Created: {new Date(vpnSession.createdAt).toLocaleString()}</div>
             </div>
           </div>
 

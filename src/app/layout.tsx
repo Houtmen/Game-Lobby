@@ -11,16 +11,13 @@ export const metadata: Metadata = {
   description: 'Connect with friends and play your favorite retro games together',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <style dangerouslySetInnerHTML={{
-          __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
             * {
               margin: 0;
               padding: 0;
@@ -667,15 +664,14 @@ export default function RootLayout({
             .nav-link:hover {
               color: #2563eb;
             }
-          `
-        }} />
+          `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <Providers>
           <AppNavigation />
-          <main>
-            {children}
-          </main>
+          <main>{children}</main>
         </Providers>
       </body>
     </html>

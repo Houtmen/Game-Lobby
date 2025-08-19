@@ -33,9 +33,7 @@ export async function GET(request: NextRequest) {
 
     const games = await prisma.game.findMany({
       where: whereClause,
-      orderBy: [
-        { name: 'asc' }
-      ],
+      orderBy: [{ name: 'asc' }],
       select: {
         id: true,
         name: true,
@@ -53,28 +51,24 @@ export async function GET(request: NextRequest) {
         publisher: true,
         requiresVPN: true,
         networkPorts: true,
-      }
+      },
     });
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         games,
-        count: games.length
+        count: games.length,
       }),
-      { 
+      {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Error fetching available games:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch available games' }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to fetch available games' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

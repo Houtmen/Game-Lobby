@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
 
     // Get all running games from the launcher
     const allRunningGames = gameLauncher.updateAllProcessStatuses();
-    
+
     // Get session and game details for each running process
     const enrichedGames = await Promise.all(
       allRunningGames
-        .filter(game => game.status === 'running')
+        .filter((game) => game.status === 'running')
         .map(async (gameProcess) => {
           try {
             // Get session details
@@ -33,19 +33,19 @@ export async function GET(request: NextRequest) {
                   select: {
                     id: true,
                     name: true,
-                    executable: true,
                     executablePath: true,
-                    networkProtocol: true,
-                    defaultPort: true,
-                    vpnRequired: true
-                  }
+                    requiresVPN: true,
+                    networkPorts: true,
+                    maxPlayers: true,
+                    version: true,
+                  },
                 },
                 host: {
                   select: {
                     id: true,
                     username: true,
-                    avatar: true
-                  }
+                    avatar: true,
+                  },
                 },
                 players: {
                   include: {
@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
                       select: {
                         id: true,
                         username: true,
-                        avatar: true
-                      }
-                    }
-                  }
-                }
-              }
+                        avatar: true,
+                      },
+                    },
+                  },
+                },
+              },
             });
 
             if (!session) return null;
@@ -78,15 +78,17 @@ export async function GET(request: NextRequest) {
                 createdAt: session.createdAt,
                 game: session.game,
                 host: session.host,
-                playerCount: session.players.length
+                playerCount: session.players.length,
               },
-              player: player ? {
-                userId: player.userId,
-                username: player.user.username,
-                avatar: player.user.avatar,
-                isHost: player.userId === session.hostPlayerId,
-                status: player.status
-              } : null
+              player: player
+                ? {
+                    userId: player.userId,
+                    username: player.user.username,
+                    avatar: player.user.avatar,
+                    isHost: player.userId === session.hostId,
+                    status: player.status,
+                  }
+                : null,
             };
           } catch (error) {
             console.error(`Error enriching game process data:`, error);
@@ -96,26 +98,29 @@ export async function GET(request: NextRequest) {
     );
 
     // Filter out null results
-    const validGames = enrichedGames.filter(game => game !== null);
+    const validGames = enrichedGames.filter((game) => game !== null);
 
     // Group by session for better organization
-    const gamesBySession = validGames.reduce((acc, game) => {
-      const sessionId = game.session.id;
-      if (!acc[sessionId]) {
-        acc[sessionId] = {
-          session: game.session,
-          runningGames: []
-        };
-      }
-      acc[sessionId].runningGames.push({
-        processId: game.processId,
-        status: game.status,
-        startTime: game.startTime,
-        exitCode: game.exitCode,
-        player: game.player
-      });
-      return acc;
-    }, {} as Record<string, any>);
+    const gamesBySession = validGames.reduce(
+      (acc, game) => {
+        const sessionId = game.session.id;
+        if (!acc[sessionId]) {
+          acc[sessionId] = {
+            session: game.session,
+            runningGames: [],
+          };
+        }
+        acc[sessionId].runningGames.push({
+          processId: game.processId,
+          status: game.status,
+          startTime: game.startTime,
+          exitCode: game.exitCode,
+          player: game.player,
+        });
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
     return NextResponse.json({
       totalActiveGames: validGames.length,
@@ -123,16 +128,12 @@ export async function GET(request: NextRequest) {
       gamesBySession,
       summary: {
         runningProcesses: validGames.length,
-        uniquePlayers: [...new Set(validGames.map(g => g.player?.userId))].length,
-        activeSessions: Object.keys(gamesBySession).length
-      }
+        uniquePlayers: [...new Set(validGames.map((g) => g.player?.userId))].length,
+        activeSessions: Object.keys(gamesBySession).length,
+      },
     });
-
   } catch (error) {
     console.error('Active games error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get active games' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get active games' }, { status: 500 });
   }
 }

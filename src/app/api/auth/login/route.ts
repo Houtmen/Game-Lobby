@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
     // Find user by email or username
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: email },
-          { username: email }
-        ]
+        OR: [{ email: email }, { username: email }],
       },
       select: {
         id: true,
@@ -30,26 +27,24 @@ export async function POST(request: NextRequest) {
         lastName: true,
         subscriptionTier: true,
         isOnline: true,
-      }
+      },
     });
 
-    if (!user || !(await verifyPassword(password, user.password))) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid email/username or password' }),
-        { 
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+  // Password may be null for OAuth users; ensure it's present
+  if (!user || !user.password || !(await verifyPassword(password, user.password))) {
+      return new Response(JSON.stringify({ error: 'Invalid email/username or password' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Update user online status
     await prisma.user.update({
       where: { id: user.id },
-      data: { 
+      data: {
         isOnline: true,
-        lastSeen: new Date()
-      }
+        lastSeen: new Date(),
+      },
     });
 
     // Generate JWT tokens
@@ -69,43 +64,42 @@ export async function POST(request: NextRequest) {
         message: 'Login successful',
         user: userWithoutPassword,
         token: tokens.accessToken,
-        refreshToken: tokens.refreshToken
+        refreshToken: tokens.refreshToken,
       }),
-      { 
+      {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 
     // Set HTTP-only cookies for security
-    response.headers.set('Set-Cookie', [
-      `auth-token=${tokens.accessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict`,
-      `refresh-token=${tokens.refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`
-    ].join(', '));
+    response.headers.set(
+      'Set-Cookie',
+      [
+        `auth-token=${tokens.accessToken}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax`,
+        `refresh-token=${tokens.refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`,
+      ].join(', ')
+    );
 
     return response;
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Validation failed',
-          details: error.issues
+          details: error.issues,
         }),
-        { 
+        {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     console.error('Login error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

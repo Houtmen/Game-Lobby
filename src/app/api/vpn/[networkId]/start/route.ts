@@ -4,10 +4,7 @@ import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
 
 // POST /api/vpn/[networkId]/start - Start VPN network
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { networkId: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ networkId: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -19,19 +16,19 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { networkId } = params;
+  const { networkId } = await params;
     const vpnSession = wireGuardManager.getVPNSession(networkId);
-    
+
     if (!vpnSession) {
       return NextResponse.json({ error: 'VPN session not found' }, { status: 404 });
     }
 
     // Verify user is host of the session
     const session = await prisma.gameSession.findUnique({
-      where: { id: vpnSession.sessionId }
+      where: { id: vpnSession.sessionId },
     });
 
-    if (!session || session.hostPlayerId !== decoded.userId) {
+  if (!session || session.hostId !== decoded.userId) {
       return NextResponse.json({ error: 'Only session host can start VPN' }, { status: 403 });
     }
 
@@ -43,17 +40,16 @@ export async function POST(
       where: { id: vpnSession.sessionId },
       data: {
         vpnConfig: {
-          ...session.vpnConfig as any,
-          isActive: true
-        }
-      }
+          ...(session.vpnConfig as any),
+          isActive: true,
+        },
+      },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'VPN network started successfully',
-      networkId 
+      networkId,
     });
-
   } catch (error) {
     console.error('VPN start error:', error);
     return NextResponse.json(
@@ -64,10 +60,7 @@ export async function POST(
 }
 
 // DELETE /api/vpn/[networkId]/start - Stop VPN network
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { networkId: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ networkId: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -79,19 +72,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { networkId } = params;
+  const { networkId } = await params;
     const vpnSession = wireGuardManager.getVPNSession(networkId);
-    
+
     if (!vpnSession) {
       return NextResponse.json({ error: 'VPN session not found' }, { status: 404 });
     }
 
     // Verify user is host of the session
     const session = await prisma.gameSession.findUnique({
-      where: { id: vpnSession.sessionId }
+      where: { id: vpnSession.sessionId },
     });
 
-    if (!session || session.hostPlayerId !== decoded.userId) {
+  if (!session || session.hostId !== decoded.userId) {
       return NextResponse.json({ error: 'Only session host can stop VPN' }, { status: 403 });
     }
 
@@ -103,17 +96,16 @@ export async function DELETE(
       where: { id: vpnSession.sessionId },
       data: {
         vpnConfig: {
-          ...session.vpnConfig as any,
-          isActive: false
-        }
-      }
+          ...(session.vpnConfig as any),
+          isActive: false,
+        },
+      },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'VPN network stopped successfully',
-      networkId 
+      networkId,
     });
-
   } catch (error) {
     console.error('VPN stop error:', error);
     return NextResponse.json(

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, GameCategory } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -7,47 +7,47 @@ async function main() {
 
   const games = [
     {
-      name: "Heroes of Might and Magic II",
-      description: "Classic fantasy strategy game with magic and heroes",
-      category: "STRATEGY",
+      name: 'Heroes of Might and Magic II',
+      description: 'Classic fantasy strategy game with magic and heroes',
+  category: GameCategory.STRATEGY,
       maxPlayers: 8,
       minPlayers: 2,
-      supportedPlatforms: "WINDOWS",
-      tags: "fantasy,turn-based,strategy",
+      supportedPlatforms: 'WINDOWS',
+      tags: 'fantasy,turn-based,strategy',
       releaseYear: 1996,
-      developer: "New World Computing",
-      publisher: "3DO"
+      developer: 'New World Computing',
+      publisher: '3DO',
     },
     {
-      name: "Age of Empires II",
-      description: "Medieval real-time strategy game",
-      category: "STRATEGY", 
+      name: 'Age of Empires II',
+      description: 'Medieval real-time strategy game',
+  category: GameCategory.STRATEGY,
       maxPlayers: 8,
       minPlayers: 2,
-      supportedPlatforms: "WINDOWS",
-      tags: "historical,rts,medieval",
+      supportedPlatforms: 'WINDOWS',
+      tags: 'historical,rts,medieval',
       releaseYear: 1999,
-      developer: "Ensemble Studios",
-      publisher: "Microsoft"
+      developer: 'Ensemble Studios',
+      publisher: 'Microsoft',
     },
     {
-      name: "Diablo",
-      description: "Legendary action RPG set in a dark fantasy world",
-      category: "RPG",
+      name: 'Diablo',
+      description: 'Legendary action RPG set in a dark fantasy world',
+  category: GameCategory.RPG,
       maxPlayers: 4,
       minPlayers: 1,
-      supportedPlatforms: "WINDOWS",
-      tags: "action-rpg,fantasy,dungeon",
+      supportedPlatforms: 'WINDOWS',
+      tags: 'action-rpg,fantasy,dungeon',
       releaseYear: 1996,
-      developer: "Blizzard North",
-      publisher: "Blizzard Entertainment"
-    }
+      developer: 'Blizzard North',
+      publisher: 'Blizzard Entertainment',
+    },
   ];
 
   for (const gameData of games) {
     try {
       const game = await prisma.game.create({
-        data: gameData
+        data: gameData,
       });
       console.log(`✅ Created game: ${game.name}`);
     } catch (error: any) {

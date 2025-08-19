@@ -25,7 +25,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
   gameName,
   gameExecutable,
   vpnRequired = false,
-  onLaunchStateChange
+  onLaunchStateChange,
 }) => {
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null);
   const [isLaunching, setIsLaunching] = useState(false);
@@ -40,7 +40,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     if (!token) return;
 
     const socketInstance = io({
-      auth: { token }
+      auth: { token },
     });
 
     socketInstance.on('connect', () => {
@@ -73,7 +73,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
           isRunning: true,
           status: 'running',
           processId: data.data.gameProcess?.processId,
-          startTime: data.data.gameProcess?.startTime
+          startTime: data.data.gameProcess?.startTime,
         });
       }
     });
@@ -84,7 +84,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
         console.log('Game terminated notification:', data);
         setGameStatus({
           isRunning: false,
-          status: 'terminated'
+          status: 'terminated',
         });
       }
     });
@@ -115,8 +115,8 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
 
       const response = await fetch(`/api/games/launch?sessionId=${sessionId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -145,12 +145,12 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           sessionId,
-          gameId
-        })
+          gameId,
+        }),
       });
 
       const result = await response.json();
@@ -164,12 +164,11 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
         isRunning: true,
         status: 'running',
         processId: result.gameProcess.processId,
-        startTime: result.gameProcess.startTime
+        startTime: result.gameProcess.startTime,
       });
 
       // Start checking status more frequently after launch
       setTimeout(checkGameStatus, 1000);
-
     } catch (error) {
       console.error('Game launch error:', error);
       setError(error instanceof Error ? error.message : 'Failed to launch game');
@@ -193,8 +192,8 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
       const response = await fetch(`/api/games/launch?sessionId=${sessionId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
@@ -206,12 +205,11 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
       // Update status immediately
       setGameStatus({
         isRunning: false,
-        status: 'terminated'
+        status: 'terminated',
       });
 
       // Check status after termination
       setTimeout(checkGameStatus, 1000);
-
     } catch (error) {
       console.error('Game termination error:', error);
       setError(error instanceof Error ? error.message : 'Failed to terminate game');
@@ -259,22 +257,19 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             {getStatusIcon()}
             <span className={getStatusColor()}>{getStatusText()}</span>
           </div>
-          {gameExecutable && (
-            <p className="text-xs text-gray-500 mt-1">
-              {gameExecutable}
-            </p>
-          )}
+          {gameExecutable && <p className="text-xs text-gray-500 mt-1">{gameExecutable}</p>}
         </div>
-        
+
         <div className="flex gap-2">
           <button
             onClick={launchGame}
             disabled={!canLaunch}
             className={`
               px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors
-              ${canLaunch 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ${
+                canLaunch
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }
             `}
           >
@@ -285,16 +280,17 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             )}
             Launch Game
           </button>
-          
+
           {isGameRunning && (
             <button
               onClick={terminateGame}
               disabled={!canTerminate}
               className={`
                 px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors
-                ${canTerminate 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ${
+                  canTerminate
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
               `}
             >
@@ -347,9 +343,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             <span>Last check: {lastCheck.toLocaleTimeString()}</span>
           </div>
           {gameStatus.startTime && (
-            <div className="mt-1">
-              Started: {new Date(gameStatus.startTime).toLocaleString()}
-            </div>
+            <div className="mt-1">Started: {new Date(gameStatus.startTime).toLocaleString()}</div>
           )}
         </div>
       )}

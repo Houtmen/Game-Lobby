@@ -6,6 +6,28 @@ module.exports = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    'bg-blue-600',
+    'bg-blue-700',
+    'bg-blue-800',
+    'bg-green-600',
+    'bg-green-700',
+    'bg-green-800',
+    'bg-yellow-500',
+    'bg-yellow-600',
+    'bg-yellow-700',
+    'bg-purple-600',
+    'bg-purple-700',
+    'bg-purple-800',
+    'hover:bg-blue-700',
+    'hover:bg-blue-800',
+    'hover:bg-green-700',
+    'hover:bg-green-800',
+    'hover:bg-yellow-600',
+    'hover:bg-yellow-700',
+    'hover:bg-purple-700',
+    'hover:bg-purple-800',
+  ],
   theme: {
     extend: {
       colors: {
@@ -39,4 +61,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

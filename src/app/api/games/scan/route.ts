@@ -6,35 +6,60 @@ import { getAuthenticatedUser } from '@/lib/auth/utils';
 // POST /api/games/scan - Scan system for installed games and add them
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 Games scan request received');
+
     const user = await getAuthenticatedUser(request);
+
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      console.log('❌ Authentication failed');
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    console.log('Starting game scan for user:', user.id);
-    
-    // Scan for games on the system
-    const detectedGames = await gameScanner.scanForGames();
-    
+    const body = await request.json().catch(() => ({}));
+    const { customPaths = [], manualPath, gameName } = body;
+
+    console.log('Starting game scan for user:', user.username);
+
+    let detectedGames = [];
+
+    // Handle manual game addition
+    if (manualPath) {
+      console.log('🎯 Adding manual game:', manualPath);
+      const manualGame = await gameScanner.addGameByPath(manualPath, gameName);
+      if (manualGame) {
+        detectedGames = [manualGame];
+        console.log('✅ Manual game validated:', manualGame.name);
+      } else {
+        return new Response(JSON.stringify({ error: 'Invalid game executable path' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      // Scan for games on the system
+      detectedGames = await gameScanner.scanForGames(customPaths);
+    }
+
     // Filter out games that are already in the database
     const existingGames = await prisma.game.findMany({
-      select: { name: true, executable: true }
+      select: { name: true, executablePath: true },
     });
-    
-    const existingPaths = new Set(existingGames.map(g => g.executable?.toLowerCase()));
-    const newGames = detectedGames.filter(game => 
-      game.executable && !existingPaths.has(game.executable.toLowerCase())
+
+    const existingPaths = new Set(existingGames.map((g) => g.executablePath?.toLowerCase()));
+    const newGames = detectedGames.filter(
+      (game) => game.executable && !existingPaths.has(game.executable.toLowerCase())
     );
 
     if (newGames.length === 0) {
+      console.log(`Scan complete: Found ${detectedGames.length} games, 0 new`);
       return new Response(
-        JSON.stringify({ 
-          message: 'No new games found',
+        JSON.stringify({
+          message: manualPath ? 'Game already exists in library' : 'No new games found',
           scanned: detectedGames.length,
-          added: 0
+          added: 0,
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
@@ -48,90 +73,87 @@ export async function POST(request: NextRequest) {
           data: {
             name: gameData.name,
             description: gameData.description || `Auto-detected: ${gameData.name}`,
-            executable: gameData.executable!,
+            executablePath: gameData.executable!,
             iconUrl: gameData.iconUrl,
-            supportedPlatforms: gameData.supportedPlatforms || ['WINDOWS'],
+            supportedPlatforms: (gameData.supportedPlatforms || ['WINDOWS']).join(','),
             maxPlayers: gameData.maxPlayers || 8,
             minPlayers: gameData.minPlayers || 2,
-            category: gameData.category || 'OTHER',
+            category: 'STRATEGY', // Default category since gameData.category might not match enum
             isActive: true,
-            addedBy: user.id,
-            addedAt: new Date(),
             version: gameData.version || '1.0',
-            vpnRequired: gameData.vpnRequired ?? true,
-            networkPorts: gameData.networkPorts || [],
-          }
+            requiresVPN: gameData.vpnRequired ?? true,
+            networkPorts: (gameData.networkPorts || []).join(','),
+          },
         });
         addedGames.push(game);
+        console.log(`✅ Added: ${game.name}`);
       } catch (error) {
         console.error(`Failed to add game ${gameData.name}:`, error);
       }
     }
 
-    console.log(`Game scan completed: ${addedGames.length} new games added`);
+    console.log(`Scan completed: ${addedGames.length} new games added`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         message: `Found ${addedGames.length} new games`,
         scanned: detectedGames.length,
         added: addedGames.length,
-        games: addedGames.map(game => ({
+        games: addedGames.map((game) => ({
           id: game.id,
           name: game.name,
-          executable: game.executable
-        }))
+          executable: game.executablePath,
+        })),
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Error scanning for games:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Failed to scan for games',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
 
-// GET /api/games/scan - Get scan results without adding to database  
+// GET /api/games/scan - Get scan results without adding to database
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Starting game scan preview...');
     const detectedGames = await gameScanner.scanForGames();
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         message: 'Game scan completed',
         detectedGames,
-        count: detectedGames.length
+        count: detectedGames.length,
       }),
-      { 
+      {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Error scanning for games:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Failed to scan for games',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       }),
-      { 
+      {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

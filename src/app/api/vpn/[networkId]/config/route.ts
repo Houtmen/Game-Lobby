@@ -3,10 +3,7 @@ import { wireGuardManager } from '@/lib/vpn/wireguard';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 
 // GET /api/vpn/[networkId]/config - Download client VPN configuration
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { networkId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ networkId: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -18,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { networkId } = params;
+  const { networkId } = await params;
     const { searchParams } = new URL(request.url);
     const serverEndpoint = searchParams.get('endpoint');
 
@@ -50,11 +47,10 @@ export async function GET(
         'Content-Type': 'text/plain',
         'Content-Disposition': `attachment; filename="${networkId}-client.conf"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
     });
-
   } catch (error) {
     console.error('VPN config download error:', error);
     return NextResponse.json(
@@ -65,10 +61,7 @@ export async function GET(
 }
 
 // POST /api/vpn/[networkId]/config - Get client configuration as JSON
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { networkId: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ networkId: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -80,7 +73,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { networkId } = params;
+  const { networkId } = await params;
     const body = await request.json();
     const { serverEndpoint } = body;
 
@@ -114,16 +107,15 @@ export async function POST(
       peerInfo: {
         ipAddress: peerConfig?.ipAddress,
         publicKey: peerConfig?.publicKey,
-        networkCIDR: vpnSession.config.networkCIDR
+        networkCIDR: vpnSession.config.networkCIDR,
       },
       networkInfo: {
         networkId,
         serverAddress: vpnSession.config.serverAddress,
         serverPort: vpnSession.config.serverPort,
-        isActive: vpnSession.isActive
-      }
+        isActive: vpnSession.isActive,
+      },
     });
-
   } catch (error) {
     console.error('VPN config error:', error);
     return NextResponse.json(

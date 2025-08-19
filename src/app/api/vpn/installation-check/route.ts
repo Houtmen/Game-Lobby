@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
       installMethods: {
         winget: isWingetAvailable,
         manual: true,
-        script: true
-      }
+        script: true,
+      },
     });
   } catch (error) {
     console.error('Installation check error:', error);
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         script: scriptContent,
-        message: 'Installation script generated'
+        message: 'Installation script generated',
       });
     }
 
@@ -51,19 +51,13 @@ export async function POST(request: NextRequest) {
         success: true,
         instructions,
         downloadUrl: 'https://www.wireguard.com/install/',
-        message: 'Manual installation instructions provided'
+        message: 'Manual installation instructions provided',
       });
     }
 
-    return NextResponse.json(
-      { error: 'Invalid installation method' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid installation method' }, { status: 400 });
   } catch (error) {
     console.error('Installation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to install WireGuard' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to install WireGuard' }, { status: 500 });
   }
 }

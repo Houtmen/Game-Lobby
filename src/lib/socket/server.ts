@@ -73,7 +73,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
           subscriptionTier: true,
           avatar: true,
           isOnline: true,
-        }
+        },
       });
 
       if (!user) {
@@ -121,10 +121,10 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
             host: { select: { id: true, username: true, avatar: true } },
             players: {
               include: {
-                user: { select: { id: true, username: true, avatar: true } }
-              }
-            }
-          }
+                user: { select: { id: true, username: true, avatar: true } },
+              },
+            },
+          },
         });
 
         if (!session) {
@@ -134,7 +134,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
 
         // Join socket room
         socket.join(`session:${sessionId}`);
-        
+
         // Track user session
         userSessions.set(socket.user.id, sessionId);
 
@@ -144,41 +144,40 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
             sessionId,
             gameId: session.gameId,
             gameName: session.game.name,
-            hostId: session.hostPlayerId,
+            hostId: session.hostId,
             players: [],
             messages: [],
-            status: session.status as any
+            status: session.status as any,
           });
         }
 
         const room = rooms.get(sessionId)!;
-        
+
         // Add player if not already in room
-        const existingPlayer = room.players.find(p => p.userId === socket.user!.id);
+        const existingPlayer = room.players.find((p) => p.userId === socket.user!.id);
         if (!existingPlayer) {
           room.players.push({
             userId: socket.user.id,
             username: socket.user.username,
             avatar: socket.user.avatar,
-            isHost: socket.user.id === session.hostPlayerId,
+            isHost: socket.user.id === session.hostId,
             isReady: false,
-            joinedAt: new Date()
+            joinedAt: new Date(),
           });
         }
 
         // Send room state to user
         socket.emit('room_joined', room);
-        
+
         // Notify other players
         socket.to(`session:${sessionId}`).emit('player_joined', {
           userId: socket.user.id,
           username: socket.user.username,
-          avatar: socket.user.avatar
+          avatar: socket.user.avatar,
         });
 
         // Send system message
         sendSystemMessage(sessionId, `${socket.user.username} joined the room`);
-
       } catch (error) {
         console.error('Error joining session:', error);
         socket.emit('error', 'Failed to join session');
@@ -195,18 +194,18 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
 
       const { sessionId, ready } = data;
       const room = rooms.get(sessionId);
-      
+
       if (room) {
-        const player = room.players.find(p => p.userId === socket.user!.id);
+        const player = room.players.find((p) => p.userId === socket.user!.id);
         if (player) {
           player.isReady = ready;
           io.to(`session:${sessionId}`).emit('player_ready_changed', {
             userId: socket.user.id,
-            ready
+            ready,
           });
 
           // Check if all players are ready
-          const allReady = room.players.every(p => p.isReady);
+          const allReady = room.players.every((p) => p.isReady);
           if (allReady && room.players.length >= 2) {
             sendSystemMessage(sessionId, 'All players ready! Game can start.');
             io.to(`session:${sessionId}`).emit('all_players_ready');
@@ -229,13 +228,12 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
         // Update session status in database
         await prisma.gameSession.update({
           where: { id: sessionId },
-          data: { status: 'STARTING' }
+          data: { status: 'STARTING' },
         });
 
         room.status = 'starting';
         io.to(`session:${sessionId}`).emit('game_starting', { sessionId });
         sendSystemMessage(sessionId, 'Game is starting! Launching...');
-
       } catch (error) {
         console.error('Error starting game:', error);
         socket.emit('error', 'Failed to start game');
@@ -247,7 +245,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
       if (!socket.user) return;
 
       const { sessionId, message } = data;
-      
+
       if (!message.trim()) return;
 
       try {
@@ -255,10 +253,10 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
         const chatMessage = await prisma.chatMessage.create({
           data: {
             sessionId: sessionId || null,
-            userId: socket.user.id,
-            message: message.trim(),
-            type: 'TEXT'
-          }
+            authorId: socket.user.id,
+            content: message.trim(),
+            type: 'TEXT',
+          },
         });
 
         const messageData: ChatMessage = {
@@ -268,7 +266,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
           username: socket.user.username,
           message: message.trim(),
           timestamp: chatMessage.createdAt,
-          type: 'text'
+          type: 'text',
         };
 
         // Add to room messages if it's a session
@@ -285,8 +283,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
 
         const roomName = sessionId ? `session:${sessionId}` : 'lobby';
         io.to(roomName).emit('new_message', messageData);
-
-      } catch (error) {
+  } catch (error) {
         console.error('Error sending message:', error);
         socket.emit('error', 'Failed to send message');
       }
@@ -297,7 +294,7 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
       console.log(`User ${socket.user?.username} disconnected`);
       if (socket.user) {
         updateUserOnlineStatus(socket.user.id, false);
-        
+
         // Handle leaving any session they were in
         const sessionId = userSessions.get(socket.user.id);
         if (sessionId) {
@@ -312,67 +309,67 @@ export const initializeSocket = (socketServer: SocketIOServer) => {
 
 // Helper functions
 const sendSystemMessage = (sessionId: string, message: string) => {
-    const systemMessage: ChatMessage = {
-      id: `system-${Date.now()}`,
-      sessionId,
-      userId: 'system',
-      username: 'System',
-      message,
-      timestamp: new Date(),
-      type: 'system'
-    };
-
-    const room = rooms.get(sessionId);
-    if (room) {
-      room.messages.push(systemMessage);
-      if (room.messages.length > 100) {
-        room.messages = room.messages.slice(-100);
-      }
-    }
-
-    io.to(`session:${sessionId}`).emit('new_message', systemMessage);
+  const systemMessage: ChatMessage = {
+    id: `system-${Date.now()}`,
+    sessionId,
+    userId: 'system',
+    username: 'System',
+    message,
+    timestamp: new Date(),
+    type: 'system',
   };
 
-  const handleUserLeaveSession = (socket: AuthenticatedSocket, sessionId: string) => {
-    if (!socket.user) return;
+  const room = rooms.get(sessionId);
+  if (room) {
+    room.messages.push(systemMessage);
+    if (room.messages.length > 100) {
+      room.messages = room.messages.slice(-100);
+    }
+  }
 
-    socket.leave(`session:${sessionId}`);
-    userSessions.delete(socket.user.id);
+  io.to(`session:${sessionId}`).emit('new_message', systemMessage);
+};
 
-    const room = rooms.get(sessionId);
-    if (room) {
-      // Remove player from room
-      room.players = room.players.filter(p => p.userId !== socket.user!.id);
-      
-      // Notify other players
-      socket.to(`session:${sessionId}`).emit('player_left', {
-        userId: socket.user.id,
-        username: socket.user.username
+const handleUserLeaveSession = (socket: AuthenticatedSocket, sessionId: string) => {
+  if (!socket.user) return;
+
+  socket.leave(`session:${sessionId}`);
+  userSessions.delete(socket.user.id);
+
+  const room = rooms.get(sessionId);
+  if (room) {
+    // Remove player from room
+    room.players = room.players.filter((p) => p.userId !== socket.user!.id);
+
+    // Notify other players
+    socket.to(`session:${sessionId}`).emit('player_left', {
+      userId: socket.user.id,
+      username: socket.user.username,
+    });
+
+    // Send system message
+    sendSystemMessage(sessionId, `${socket.user.username} left the room`);
+
+    // If host left, transfer to next player
+    if (room.hostId === socket.user.id && room.players.length > 0) {
+      const newHost = room.players[0];
+      room.hostId = newHost.userId;
+      newHost.isHost = true;
+
+      io.to(`session:${sessionId}`).emit('host_changed', {
+        newHostId: newHost.userId,
+        newHostName: newHost.username,
       });
 
-      // Send system message
-      sendSystemMessage(sessionId, `${socket.user.username} left the room`);
-
-      // If host left, transfer to next player
-      if (room.hostId === socket.user.id && room.players.length > 0) {
-        const newHost = room.players[0];
-        room.hostId = newHost.userId;
-        newHost.isHost = true;
-        
-        io.to(`session:${sessionId}`).emit('host_changed', {
-          newHostId: newHost.userId,
-          newHostName: newHost.username
-        });
-        
-        sendSystemMessage(sessionId, `${newHost.username} is now the host`);
-      }
-
-      // If room is empty, remove it
-      if (room.players.length === 0) {
-        rooms.delete(sessionId);
-      }
+      sendSystemMessage(sessionId, `${newHost.username} is now the host`);
     }
-  };
+
+    // If room is empty, remove it
+    if (room.players.length === 0) {
+      rooms.delete(sessionId);
+    }
+  }
+};
 
 const updateUserOnlineStatus = async (userId: string, isOnline: boolean) => {
   try {
@@ -381,7 +378,7 @@ const updateUserOnlineStatus = async (userId: string, isOnline: boolean) => {
       data: {
         isOnline,
         lastSeen: new Date(),
-      }
+      },
     });
 
     // Broadcast online status to friends
@@ -418,12 +415,12 @@ export const notifyGameLaunched = (sessionId: string, userId: string, gameData: 
     userId,
     event: 'game_launched',
     timestamp: new Date(),
-    data: gameData
+    data: gameData,
   };
 
   // Notify all users in the session
   emitToSession(sessionId, 'game_process_update', gameEventData);
-  
+
   // Notify the specific user
   emitToUser(userId, 'game_launched', gameEventData);
 };
@@ -434,28 +431,33 @@ export const notifyGameTerminated = (sessionId: string, userId: string, gameData
     userId,
     event: 'game_terminated',
     timestamp: new Date(),
-    data: gameData
+    data: gameData,
   };
 
   // Notify all users in the session
   emitToSession(sessionId, 'game_process_update', gameEventData);
-  
+
   // Notify the specific user
   emitToUser(userId, 'game_terminated', gameEventData);
 };
 
-export const notifyGameStatusChange = (sessionId: string, userId: string, status: string, processData?: any) => {
+export const notifyGameStatusChange = (
+  sessionId: string,
+  userId: string,
+  status: string,
+  processData?: any
+) => {
   const statusEventData = {
     sessionId,
     userId,
     status,
     timestamp: new Date(),
-    processData
+    processData,
   };
 
   // Notify all users in the session
   emitToSession(sessionId, 'game_status_changed', statusEventData);
-  
+
   // Notify the specific user
   emitToUser(userId, 'game_status_update', statusEventData);
 };
@@ -465,6 +467,6 @@ export const broadcastGameProcessUpdate = (sessionId: string, updates: any) => {
   emitToSession(sessionId, 'game_process_broadcast', {
     sessionId,
     timestamp: new Date(),
-    updates
+    updates,
   });
 };

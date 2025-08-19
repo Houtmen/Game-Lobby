@@ -30,8 +30,8 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
     try {
       const response = await fetch('/api/friends', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -48,16 +48,14 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
   };
 
   const toggleFriendSelection = (friendId: string) => {
-    setSelectedFriends(prev => 
-      prev.includes(friendId) 
-        ? prev.filter(id => id !== friendId)
-        : [...prev, friendId]
+    setSelectedFriends((prev) =>
+      prev.includes(friendId) ? prev.filter((id) => id !== friendId) : [...prev, friendId]
     );
   };
 
   const sendInvites = async () => {
     if (selectedFriends.length === 0) return;
-    
+
     const token = getToken();
     if (!token) return;
 
@@ -66,10 +64,10 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
       const response = await fetch(`/api/sessions/${sessionId}/invite`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ friendIds: selectedFriends })
+        body: JSON.stringify({ friendIds: selectedFriends }),
       });
 
       if (response.ok) {
@@ -92,12 +90,14 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
       <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-white">Invite Friends</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -136,7 +136,11 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
                   <div className="flex items-center space-x-3 flex-1">
                     <div className="relative">
                       {friend.avatar ? (
-                        <img src={friend.avatar} alt={friend.username} className="w-10 h-10 rounded-full" />
+                        <img
+                          src={friend.avatar}
+                          alt={friend.username}
+                          className="w-10 h-10 rounded-full"
+                        />
                       ) : (
                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                           {friend.username.charAt(0).toUpperCase()}
@@ -149,14 +153,24 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
                       <p className="text-xs text-gray-300">Online</p>
                     </div>
                   </div>
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                    selectedFriends.includes(friend.id)
-                      ? 'bg-white border-white'
-                      : 'border-gray-400'
-                  }`}>
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      selectedFriends.includes(friend.id)
+                        ? 'bg-white border-white'
+                        : 'border-gray-400'
+                    }`}
+                  >
                     {selectedFriends.includes(friend.id) && (
-                      <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-blue-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </div>

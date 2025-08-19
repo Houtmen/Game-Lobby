@@ -61,8 +61,8 @@ export const GameManager: React.FC = () => {
 
       const response = await fetch('/api/games/active', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -83,10 +83,10 @@ export const GameManager: React.FC = () => {
 
   useEffect(() => {
     fetchActiveGames();
-    
+
     // Refresh every 10 seconds
     const interval = setInterval(fetchActiveGames, 10000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -96,7 +96,7 @@ export const GameManager: React.FC = () => {
     const diff = now.getTime() - start.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m`;
     }
@@ -121,7 +121,7 @@ export const GameManager: React.FC = () => {
           <AlertTriangle className="w-5 h-5 mr-2" />
           <span>Error: {error}</span>
         </div>
-        <button 
+        <button
           onClick={fetchActiveGames}
           className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         >
@@ -168,7 +168,7 @@ export const GameManager: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600 mr-3" />
@@ -178,7 +178,7 @@ export const GameManager: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-purple-50 p-4 rounded-lg">
             <div className="flex items-center">
               <Monitor className="w-8 h-8 text-purple-600 mr-3" />
@@ -188,7 +188,7 @@ export const GameManager: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center">
               <Clock className="w-8 h-8 text-gray-600 mr-3" />
@@ -240,11 +240,13 @@ export const GameManager: React.FC = () => {
                     <div className="text-sm text-gray-600">
                       Created: {new Date(sessionData.session.createdAt).toLocaleString()}
                     </div>
-                    <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                      sessionData.session.status === 'ACTIVE' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <div
+                      className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        sessionData.session.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
                       {sessionData.session.status}
                     </div>
                   </div>
@@ -256,14 +258,17 @@ export const GameManager: React.FC = () => {
                     Running Games ({sessionData.runningGames.length})
                   </h4>
                   {sessionData.runningGames.map((game) => (
-                    <div key={game.processId} className="bg-gray-50 rounded p-3 flex items-center justify-between">
+                    <div
+                      key={game.processId}
+                      className="bg-gray-50 rounded p-3 flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                           {game.player.avatar ? (
-                            <img 
-                              src={game.player.avatar} 
-                              alt={game.player.username} 
-                              className="w-8 h-8 rounded-full" 
+                            <img
+                              src={game.player.avatar}
+                              alt={game.player.username}
+                              className="w-8 h-8 rounded-full"
                             />
                           ) : (
                             <span className="text-sm font-bold text-white">
@@ -286,11 +291,13 @@ export const GameManager: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                          game.status === 'running' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <div
+                          className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                            game.status === 'running'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {game.status}
                         </div>
                       </div>

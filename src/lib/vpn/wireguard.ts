@@ -43,6 +43,11 @@ export class WireGuardManager {
     this.configDir = configDir;
   }
 
+  // Allow subclasses to register sessions in a controlled way
+  protected setActiveSession(networkId: string, session: VPNSession) {
+    this.activeConfigs.set(networkId, session);
+  }
+
   /**
    * Generate a new WireGuard key pair
    */
@@ -50,13 +55,13 @@ export class WireGuardManager {
     try {
       // Generate private key
       const { stdout: privateKey } = await execAsync('wg genkey');
-      
+
       // Generate public key from private key
       const { stdout: publicKey } = await execAsync(`echo ${privateKey.trim()} | wg pubkey`);
-      
+
       return {
         privateKey: privateKey.trim(),
-        publicKey: publicKey.trim()
+        publicKey: publicKey.trim(),
       };
     } catch (error) {
       throw new Error(`Failed to generate WireGuard keys: ${error}`);
@@ -68,10 +73,10 @@ export class WireGuardManager {
    */
   async createVPNNetwork(sessionId: string, participantUserIds: string[]): Promise<VPNSession> {
     const networkId = `lobby-${sessionId}`;
-    
+
     // Generate server keys
     const serverKeys = await this.generateKeyPair();
-    
+
     // Create base network configuration
     const baseIP = this.generateNetworkIP();
     const serverAddress = `${baseIP}.1`;
@@ -83,7 +88,7 @@ export class WireGuardManager {
     for (let i = 0; i < participantUserIds.length; i++) {
       const peerKeys = await this.generateKeyPair();
       const peerIP = `${baseIP}.${i + 2}`; // Start from .2
-      
+
       peers.push({
         publicKey: peerKeys.publicKey,
         privateKey: peerKeys.privateKey,
@@ -99,7 +104,7 @@ export class WireGuardManager {
       serverAddress,
       serverPort,
       networkCIDR,
-      peers
+      peers,
     };
 
     const vpnSession: VPNSession = {
@@ -109,7 +114,7 @@ export class WireGuardManager {
       config,
       isActive: false,
       createdAt: new Date(),
-      participants: participantUserIds
+      participants: participantUserIds,
     };
 
     // Store configuration
@@ -122,10 +127,14 @@ export class WireGuardManager {
    * Generate server configuration file
    */
   async generateServerConfig(config: WireGuardConfig): Promise<string> {
-    const peers = config.peers.map(peer => `
+    const peers = config.peers
+      .map(
+        (peer) => `
 [Peer]
 PublicKey = ${peer.publicKey}
-AllowedIPs = ${peer.ipAddress}/32`).join('\n');
+AllowedIPs = ${peer.ipAddress}/32`
+      )
+      .join('\n');
 
     return `[Interface]
 PrivateKey = ${config.serverPrivateKey}
@@ -142,7 +151,11 @@ ${peers}`;
   /**
    * Generate client configuration for a specific peer
    */
-  async generateClientConfig(config: WireGuardConfig, peerIndex: number, serverEndpoint: string): Promise<string> {
+  async generateClientConfig(
+    config: WireGuardConfig,
+    peerIndex: number,
+    serverEndpoint: string
+  ): Promise<string> {
     const peer = config.peers[peerIndex];
     if (!peer) {
       throw new Error(`Peer ${peerIndex} not found in configuration`);
@@ -173,7 +186,7 @@ PersistentKeepalive = 25`;
       // Generate server configuration
       const serverConfig = await this.generateServerConfig(vpnSession.config);
       const configPath = path.join(this.configDir, `${networkId}.conf`);
-      
+
       // Write configuration file
       await fs.writeFile(configPath, serverConfig);
 
@@ -201,7 +214,7 @@ PersistentKeepalive = 25`;
 
     try {
       const configPath = path.join(this.configDir, `${networkId}.conf`);
-      
+
       // Stop WireGuard interface
       await execAsync(`wg-quick down "${configPath}"`);
 
@@ -221,7 +234,11 @@ PersistentKeepalive = 25`;
   /**
    * Get client configuration for download
    */
-  async getClientConfig(networkId: string, userId: string, serverEndpoint: string): Promise<string> {
+  async getClientConfig(
+    networkId: string,
+    userId: string,
+    serverEndpoint: string
+  ): Promise<string> {
     const vpnSession = this.activeConfigs.get(networkId);
     if (!vpnSession) {
       throw new Error(`VPN session ${networkId} not found`);
@@ -246,7 +263,7 @@ PersistentKeepalive = 25`;
    * List all active VPN sessions
    */
   getActiveVPNSessions(): VPNSession[] {
-    return Array.from(this.activeConfigs.values()).filter(session => session.isActive);
+    return Array.from(this.activeConfigs.values()).filter((session) => session.isActive);
   }
 
   /**
@@ -284,7 +301,7 @@ PersistentKeepalive = 25`;
    */
   async cleanupInactiveSessions(maxAgeHours = 24): Promise<void> {
     const cutoffTime = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
-    
+
     for (const [networkId, session] of this.activeConfigs) {
       if (!session.isActive && session.createdAt < cutoffTime) {
         try {

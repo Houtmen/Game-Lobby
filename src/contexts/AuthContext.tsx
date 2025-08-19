@@ -24,14 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // First check localStorage for user data (from our simple login)
       const storedUser = localStorage.getItem('user');
       const storedToken = localStorage.getItem('accessToken');
-      
+
       if (storedUser && storedToken) {
         try {
           const userData = JSON.parse(storedUser);
           setUser({
             ...userData,
             isOnline: true,
-            lastSeen: new Date()
+            lastSeen: new Date(),
           });
           return;
         } catch (e) {
@@ -45,13 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/auth/me', {
         credentials: 'include',
       });
-      
+
       if (response.ok) {
         const userData = await response.json();
         setUser({
           ...userData.user,
           isOnline: true,
-          lastSeen: new Date()
+          lastSeen: new Date(),
         });
       } else {
         setUser(null);
@@ -83,13 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData = {
       ...data.user,
       isOnline: true,
-      lastSeen: new Date()
+      lastSeen: new Date(),
     };
     localStorage.setItem('user', JSON.stringify(userData));
 
     // Update user state
     setUser(userData);
-    
+
     // Wait a bit for state to propagate before navigation
     setTimeout(() => {
       router.push('/lobby');
@@ -117,13 +117,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      login,
-      logout,
-      refreshUser,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

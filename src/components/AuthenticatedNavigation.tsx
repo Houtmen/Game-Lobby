@@ -31,18 +31,20 @@ export default function AuthenticatedNavigation() {
   }
 
   // Convert NextAuth session to our User type
-  const user = session?.user ? {
-    id: session.user.id,
-    username: session.user.username,
-    email: session.user.email!,
-    avatar: session.user.avatar,
-    isOnline: true,
-    lastSeen: new Date(),
-    createdAt: new Date(),
-    provider: session.user.provider,
-    friends: [],
-    blockedUsers: [],
-  } : null;
+  const user = session?.user
+    ? {
+        id: session.user.id,
+        username: session.user.username,
+        email: session.user.email!,
+        avatar: session.user.avatar,
+        isOnline: true,
+        lastSeen: new Date(),
+        createdAt: new Date(),
+        provider: session.user.provider,
+        friends: [],
+        blockedUsers: [],
+      }
+    : null;
 
   return <Navigation user={user || undefined} onLogout={handleLogout} />;
 }

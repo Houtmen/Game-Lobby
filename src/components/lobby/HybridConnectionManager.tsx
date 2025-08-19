@@ -29,9 +29,11 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
   currentUserId,
   gameConfig,
   onConnectionEstablished,
-  onConnectionFailed
+  onConnectionFailed,
 }) => {
-  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connecting' | 'connected'>('none');
+  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connecting' | 'connected'>(
+    'none'
+  );
   const [connectionMode, setConnectionMode] = useState<'none' | 'webrtc' | 'vpn'>('none');
   const [showOptions, setShowOptions] = useState(false);
   const [networkManager, setNetworkManager] = useState<HybridGameNetwork | null>(null);
@@ -78,17 +80,19 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
     try {
       console.log('🤖 Attempting smart connection...');
       console.log('🎮 Game Config:', gameConfig);
-      
+
       // Check if game requires VPN
       if (gameConfig.requiresVPN && !vpnAvailable) {
-        throw new Error('This game requires VPN but VPN is not available. Please install WireGuard.');
+        throw new Error(
+          'This game requires VPN but VPN is not available. Please install WireGuard.'
+        );
       }
-      
+
       const result = await networkManager.smartConnect(sessionId, participantUserIds, gameConfig);
-      
+
       setConnectionMode(result.mode);
       setConnectionStatus('connected');
-      
+
       if (result.mode !== 'none') {
         onConnectionEstablished(result.mode as 'webrtc' | 'vpn');
       }
@@ -100,7 +104,7 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
         console.log('🔒 Connected via VPN - secure tunnel established');
         console.log('🎯 Game-specific VPN network created for ports:', gameConfig.ports);
       }
-      
+
       // Show game launch instructions
       if (gameConfig.executablePath) {
         console.log('🎮 Game executable:', gameConfig.executablePath);
@@ -108,7 +112,6 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
           console.log('🎮 Launch parameters:', gameConfig.launchParameters);
         }
       }
-      
     } catch (error) {
       console.error('Smart connection failed:', error);
       setConnectionStatus('none');
@@ -125,7 +128,7 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
     try {
       console.log('🔒 Forcing VPN connection...');
       const result = await networkManager.connectViaVPN(sessionId, participantUserIds, gameConfig);
-      
+
       if (result.success) {
         setConnectionMode('vpn');
         setConnectionStatus('connected');
@@ -179,9 +182,7 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
           <div className="text-green-600">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>
-                Connected via {connectionMode === 'webrtc' ? '🌐 WebRTC' : '🔒 VPN'}
-              </span>
+              <span>Connected via {connectionMode === 'webrtc' ? '🌐 WebRTC' : '🔒 VPN'}</span>
             </div>
           </div>
         );
@@ -198,12 +199,18 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
       {connectionStatus === 'none' && (
         <div className="space-y-4">
           <div className="text-sm text-gray-600 mb-4">
-            <div>🎮 <strong>{gameConfig.gameName}</strong></div>
+            <div>
+              🎮 <strong>{gameConfig.gameName}</strong>
+            </div>
             <div className="mt-1">
               {gameConfig.requiresVPN ? (
-                <span className="text-purple-600">🔒 This game requires VPN for best compatibility</span>
+                <span className="text-purple-600">
+                  🔒 This game requires VPN for best compatibility
+                </span>
               ) : (
-                <span className="text-green-600">🌐 This game supports WebRTC for instant connection</span>
+                <span className="text-green-600">
+                  🌐 This game supports WebRTC for instant connection
+                </span>
               )}
             </div>
             <div className="text-xs text-gray-500 mt-1">
@@ -235,14 +242,16 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
           {showOptions && (
             <div className="space-y-3 pt-4 border-t border-gray-200">
               <div className="text-sm font-medium text-gray-700 mb-2">Manual Connection:</div>
-              
+
               {/* WebRTC Option */}
               <button
-                onClick={() => {/* Force WebRTC logic could be added */}}
+                onClick={() => {
+                  /* Force WebRTC logic could be added */
+                }}
                 disabled={!webrtcAvailable}
                 className={`w-full ${
-                  webrtcAvailable 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  webrtcAvailable
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 } font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2`}
               >
@@ -258,8 +267,8 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
                 onClick={handleForceVPN}
                 disabled={!vpnAvailable}
                 className={`w-full ${
-                  vpnAvailable 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                  vpnAvailable
+                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 } font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2`}
               >
@@ -267,10 +276,9 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
                 <span>VPN Only (Secure)</span>
               </button>
               <div className="text-xs text-gray-500 -mt-1 px-4">
-                {vpnAvailable 
+                {vpnAvailable
                   ? 'Secure tunnel for game traffic only'
-                  : 'VPN not available - WireGuard not installed'
-                }
+                  : 'VPN not available - WireGuard not installed'}
               </div>
             </div>
           )}
@@ -281,14 +289,11 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
         <div className="space-y-4">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="text-sm text-green-800">
-              <div className="font-medium mb-1">
-                ✅ Network ready for {gameConfig.gameName}
-              </div>
+              <div className="font-medium mb-1">✅ Network ready for {gameConfig.gameName}</div>
               <div className="text-green-600 mb-2">
-                {connectionMode === 'webrtc' 
+                {connectionMode === 'webrtc'
                   ? '🌐 Direct browser connection - low latency, no downloads'
-                  : '🔒 Secure VPN tunnel - only game traffic is routed'
-                }
+                  : '🔒 Secure VPN tunnel - only game traffic is routed'}
               </div>
               <div className="text-xs text-gray-600">
                 Network ports configured: {gameConfig.ports.join(', ')}
@@ -300,7 +305,7 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="text-sm text-blue-800">
               <div className="font-medium mb-2">🎮 Ready to Launch Game</div>
-              
+
               {gameConfig.executablePath ? (
                 <div className="space-y-2">
                   <div className="text-blue-700">
@@ -315,21 +320,27 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
                     )}
                   </div>
                   <div className="text-xs text-blue-600 mt-2">
-                    💡 Launch your game now! The network is configured to route traffic through the {connectionMode === 'webrtc' ? 'WebRTC' : 'VPN'} connection.
+                    💡 Launch your game now! The network is configured to route traffic through the{' '}
+                    {connectionMode === 'webrtc' ? 'WebRTC' : 'VPN'} connection.
                   </div>
                 </div>
               ) : (
                 <div className="text-blue-700">
-                  <div className="mb-2">Launch <strong>{gameConfig.gameName}</strong> manually:</div>
+                  <div className="mb-2">
+                    Launch <strong>{gameConfig.gameName}</strong> manually:
+                  </div>
                   <div className="text-xs text-blue-600">
-                    💡 Start your game and join the multiplayer session. Network traffic will be automatically routed through the {connectionMode === 'webrtc' ? 'WebRTC' : 'VPN'} connection.
+                    💡 Start your game and join the multiplayer session. Network traffic will be
+                    automatically routed through the{' '}
+                    {connectionMode === 'webrtc' ? 'WebRTC' : 'VPN'} connection.
                   </div>
                 </div>
               )}
 
               {gameConfig.requiresVPN && connectionMode === 'webrtc' && (
                 <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 text-xs">
-                  ⚠️ Note: This game typically requires VPN, but you're connected via WebRTC. If you experience issues, try disconnecting and using VPN mode.
+                  ⚠️ Note: This game typically requires VPN, but you're connected via WebRTC. If you
+                  experience issues, try disconnecting and using VPN mode.
                 </div>
               )}
             </div>
@@ -343,14 +354,16 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
                   console.log('🚀 Launching game:', gameConfig.executablePath);
                   console.log('🎯 With parameters:', gameConfig.launchParameters);
                   // For now, just show instructions - actual launching would need backend API
-                  alert(`Game launcher not implemented yet. Please launch:\n${gameConfig.executablePath}\n${gameConfig.launchParameters || ''}`);
+                  alert(
+                    `Game launcher not implemented yet. Please launch:\n${gameConfig.executablePath}\n${gameConfig.launchParameters || ''}`
+                  );
                 }}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
               >
                 🚀 Launch Game
               </button>
             )}
-            
+
             <button
               onClick={handleDisconnect}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"

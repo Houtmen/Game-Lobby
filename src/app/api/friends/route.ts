@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
     // Get all friendships where user is sender or receiver
     const friendships = await prisma.friendship.findMany({
       where: {
-        OR: [
-          { senderId: userId },
-          { receiverId: userId }
-        ]
+        OR: [{ senderId: userId }, { receiverId: userId }],
       },
       include: {
         sender: {
@@ -33,8 +30,8 @@ export async function GET(request: NextRequest) {
             username: true,
             avatar: true,
             isOnline: true,
-            lastSeen: true
-          }
+            lastSeen: true,
+          },
         },
         receiver: {
           select: {
@@ -42,10 +39,10 @@ export async function GET(request: NextRequest) {
             username: true,
             avatar: true,
             isOnline: true,
-            lastSeen: true
-          }
-        }
-      }
+            lastSeen: true,
+          },
+        },
+      },
     });
 
     // Categorize the friendships
@@ -60,7 +57,7 @@ export async function GET(request: NextRequest) {
         friends.push({
           ...friend,
           friendshipId: friendship.id,
-          friendshipCreatedAt: friendship.createdAt
+          friendshipCreatedAt: friendship.createdAt,
         });
       } else if (friendship.status === 'PENDING') {
         if (friendship.senderId === userId) {
@@ -72,7 +69,7 @@ export async function GET(request: NextRequest) {
             status: friendship.status,
             createdAt: friendship.createdAt,
             sender: friendship.sender,
-            receiver: friendship.receiver
+            receiver: friendship.receiver,
           });
         } else {
           // User received this request
@@ -83,7 +80,7 @@ export async function GET(request: NextRequest) {
             status: friendship.status,
             createdAt: friendship.createdAt,
             sender: friendship.sender,
-            receiver: friendship.receiver
+            receiver: friendship.receiver,
           });
         }
       }
@@ -92,9 +89,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       friends,
       sentRequests,
-      receivedRequests
+      receivedRequests,
     });
-
   } catch (error) {
     console.error('Friends API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -124,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // Find the target user
     const targetUser = await prisma.user.findUnique({
-      where: { username }
+      where: { username },
     });
 
     if (!targetUser) {
@@ -132,7 +128,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (targetUser.id === senderId) {
-      return NextResponse.json({ error: 'Cannot send friend request to yourself' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Cannot send friend request to yourself' },
+        { status: 400 }
+      );
     }
 
     // Check if friendship already exists
@@ -140,9 +139,9 @@ export async function POST(request: NextRequest) {
       where: {
         OR: [
           { senderId, receiverId: targetUser.id },
-          { senderId: targetUser.id, receiverId: senderId }
-        ]
-      }
+          { senderId: targetUser.id, receiverId: senderId },
+        ],
+      },
     });
 
     if (existingFriendship) {
@@ -160,7 +159,7 @@ export async function POST(request: NextRequest) {
       data: {
         senderId,
         receiverId: targetUser.id,
-        status: 'PENDING'
+        status: 'PENDING',
       },
       include: {
         sender: {
@@ -168,25 +167,24 @@ export async function POST(request: NextRequest) {
             id: true,
             username: true,
             avatar: true,
-            isOnline: true
-          }
+            isOnline: true,
+          },
         },
         receiver: {
           select: {
             id: true,
             username: true,
             avatar: true,
-            isOnline: true
-          }
-        }
-      }
+            isOnline: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
       message: 'Friend request sent successfully',
-      friendship
+      friendship,
     });
-
   } catch (error) {
     console.error('Send friend request error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

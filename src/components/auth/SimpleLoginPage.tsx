@@ -19,7 +19,7 @@ export default function SimpleLoginPage() {
 
     try {
       console.log('🔐 Attempting login with:', { email, password: '***' });
-      
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -46,7 +46,6 @@ export default function SimpleLoginPage() {
 
       console.log('✅ Login successful, redirecting to lobby...');
       router.push('/lobby');
-
     } catch (error) {
       console.error('🚨 Login error:', error);
       setError('Network error. Please try again.');
@@ -58,7 +57,7 @@ export default function SimpleLoginPage() {
   const testDebugEndpoint = async () => {
     try {
       console.log('🔍 Testing debug endpoint...');
-      
+
       const response = await fetch('/api/auth/debug-login', {
         method: 'POST',
         headers: {
@@ -69,7 +68,7 @@ export default function SimpleLoginPage() {
 
       const data = await response.json();
       console.log('🔧 Debug response:', data);
-      
+
       if (data.success) {
         alert('Debug test successful! Check console for details.');
       } else {

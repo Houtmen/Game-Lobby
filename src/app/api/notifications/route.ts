@@ -21,11 +21,10 @@ export async function GET(request: NextRequest) {
     const notifications = await prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 50 // Limit to recent notifications
+      take: 50, // Limit to recent notifications
     });
 
     return NextResponse.json({ notifications });
-
   } catch (error) {
     console.error('Notifications API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -57,15 +56,14 @@ export async function PUT(request: NextRequest) {
     await prisma.notification.updateMany({
       where: {
         id: { in: notificationIds },
-        userId: userId // Ensure user can only mark their own notifications
+        userId: userId, // Ensure user can only mark their own notifications
       },
       data: {
-        isRead: true
-      }
+        isRead: true,
+      },
     });
 
     return NextResponse.json({ message: 'Notifications marked as read' });
-
   } catch (error) {
     console.error('Mark notifications read error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

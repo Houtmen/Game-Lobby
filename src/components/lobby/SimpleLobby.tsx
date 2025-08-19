@@ -55,13 +55,17 @@ export default function SimpleLobby() {
     const token = localStorage.getItem('accessToken');
     return {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
   };
 
-  const filteredSessions = showAllSessions 
-    ? (Array.isArray(sessions) ? sessions : [])
-    : (Array.isArray(sessions) ? sessions.filter(session => ['WAITING', 'STARTING', 'ACTIVE'].includes(session.status)) : []);
+  const filteredSessions = showAllSessions
+    ? Array.isArray(sessions)
+      ? sessions
+      : []
+    : Array.isArray(sessions)
+      ? sessions.filter((session) => ['WAITING', 'STARTING', 'ACTIVE'].includes(session.status))
+      : [];
 
   useEffect(() => {
     if (user) {
@@ -74,12 +78,12 @@ export default function SimpleLobby() {
     try {
       setLoading(true);
       const response = await fetch('/api/sessions');
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('📡 Loaded sessions response:', data);
       // Handle both direct array and paginated response formats
@@ -115,10 +119,10 @@ export default function SimpleLobby() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/games/scan', {
         method: 'POST',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -128,10 +132,12 @@ export default function SimpleLobby() {
 
       const result = await response.json();
       console.log('🔍 Game scan result:', result);
-      
+
       // Show success message
-      setError(`Game scan complete! Found ${result.scanned} games, added ${result.added} new games.`);
-      
+      setError(
+        `Game scan complete! Found ${result.scanned} games, added ${result.added} new games.`
+      );
+
       // Reload games to show newly detected ones
       await loadGames();
     } catch (err) {
@@ -151,15 +157,15 @@ export default function SimpleLobby() {
 
     try {
       const sessionName = `${user.username}'s ${game.name} Session`;
-      
+
       const response = await fetch('/api/sessions', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
           name: sessionName,
           gameId: game.id,
-          maxPlayers: selectedMaxPlayers
-        })
+          maxPlayers: selectedMaxPlayers,
+        }),
       });
 
       if (!response.ok) {
@@ -169,11 +175,11 @@ export default function SimpleLobby() {
 
       const newSession = await response.json();
       console.log('✅ Session created:', newSession);
-      
+
       // Reset modal state
       setShowGameSelection(false);
       setSelectedGameForSession(null);
-      
+
       // Reload sessions to show the new one
       await loadSessions();
     } catch (err) {
@@ -189,7 +195,7 @@ export default function SimpleLobby() {
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'join' })
+        body: JSON.stringify({ action: 'join' }),
       });
 
       if (!response.ok) {
@@ -199,12 +205,10 @@ export default function SimpleLobby() {
 
       const updatedSession = await response.json();
       console.log('✅ Joined session:', updatedSession);
-      
+
       // Update the session in our local state
-      setSessions(prevSessions => 
-        prevSessions.map(session => 
-          session.id === sessionId ? updatedSession : session
-        )
+      setSessions((prevSessions) =>
+        prevSessions.map((session) => (session.id === sessionId ? updatedSession : session))
       );
 
       // Show connection manager for this session
@@ -223,7 +227,7 @@ export default function SimpleLobby() {
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'leave' })
+        body: JSON.stringify({ action: 'leave' }),
       });
 
       if (!response.ok) {
@@ -233,12 +237,10 @@ export default function SimpleLobby() {
 
       const updatedSession = await response.json();
       console.log('✅ Left session:', updatedSession);
-      
+
       // Update the session in our local state
-      setSessions(prevSessions => 
-        prevSessions.map(session => 
-          session.id === sessionId ? updatedSession : session
-        )
+      setSessions((prevSessions) =>
+        prevSessions.map((session) => (session.id === sessionId ? updatedSession : session))
       );
     } catch (err) {
       console.error('Error leaving session:', err);
@@ -252,7 +254,7 @@ export default function SimpleLobby() {
     try {
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -261,11 +263,9 @@ export default function SimpleLobby() {
       }
 
       console.log('✅ Session deleted:', sessionId);
-      
+
       // Remove the session from our local state
-      setSessions(prevSessions => 
-        prevSessions.filter(session => session.id !== sessionId)
-      );
+      setSessions((prevSessions) => prevSessions.filter((session) => session.id !== sessionId));
     } catch (err) {
       console.error('Error deleting session:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete session');
@@ -316,7 +316,7 @@ export default function SimpleLobby() {
                 ×
               </button>
             </div>
-            
+
             {!selectedGameForSession ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {games.map((game) => (
@@ -337,7 +337,7 @@ export default function SimpleLobby() {
                     )}
                   </div>
                 ))}
-                
+
                 {games.length === 0 && (
                   <div className="text-center text-gray-400 py-8 col-span-2">
                     <p>No games available</p>
@@ -348,12 +348,14 @@ export default function SimpleLobby() {
             ) : (
               <div className="space-y-4">
                 <div className="bg-gray-700 rounded-lg p-4 border border-gray-500">
-                  <h3 className="font-semibold text-lg mb-2 text-white">{selectedGameForSession.name}</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-white">
+                    {selectedGameForSession.name}
+                  </h3>
                   {selectedGameForSession.description && (
                     <p className="text-gray-300 text-sm">{selectedGameForSession.description}</p>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2 text-white">
                     Maximum Players: {selectedMaxPlayers}
@@ -371,7 +373,7 @@ export default function SimpleLobby() {
                     <span>{Math.min(selectedGameForSession.maxPlayers || 8, 8)}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setSelectedGameForSession(null)}
@@ -408,27 +410,31 @@ export default function SimpleLobby() {
                   ×
                 </button>
               </div>
-              
+
               <div className="mb-4 text-sm text-gray-300">
                 <div>Session: {selectedSession.name}</div>
                 <div>Game: {selectedSession.game.name}</div>
                 <div>Host: {selectedSession.host.username}</div>
-                <div>Players: {selectedSession.players.length}/{selectedSession.maxPlayers}</div>
+                <div>
+                  Players: {selectedSession.players.length}/{selectedSession.maxPlayers}
+                </div>
                 <div>VPN Required: {selectedSession.game.requiresVPN ? 'Yes' : 'No'}</div>
               </div>
 
               <HybridConnectionManager
                 sessionId={selectedSession.id}
-                participantUserIds={selectedSession.players.map(p => p.user.id)}
+                participantUserIds={selectedSession.players.map((p) => p.user.id)}
                 currentUserId={user.id}
                 gameConfig={{
                   gameName: selectedSession.game.name,
-                  ports: selectedSession.game.networkPorts ? selectedSession.game.networkPorts.split(',').map(p => parseInt(p.trim())) : [27015],
-                  networkRange: "10.0.0.0/24",
+                  ports: selectedSession.game.networkPorts
+                    ? selectedSession.game.networkPorts.split(',').map((p) => parseInt(p.trim()))
+                    : [27015],
+                  networkRange: '10.0.0.0/24',
                   maxPlayers: selectedSession.maxPlayers,
                   requiresVPN: selectedSession.game.requiresVPN,
                   executablePath: selectedSession.game.executablePath,
-                  launchParameters: selectedSession.game.launchParameters
+                  launchParameters: selectedSession.game.launchParameters,
                 }}
                 onConnectionEstablished={handleConnectionEstablished}
                 onConnectionFailed={handleConnectionFailed}
@@ -451,7 +457,7 @@ export default function SimpleLobby() {
           <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
             <p className="font-bold">Error</p>
             <p>{error}</p>
-            <button 
+            <button
               onClick={() => setError(null)}
               className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 border border-red-400"
             >
@@ -495,15 +501,15 @@ export default function SimpleLobby() {
             <button
               onClick={() => setShowAllSessions(!showAllSessions)}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors border ${
-                showAllSessions 
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-400' 
+                showAllSessions
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-400'
                   : 'bg-green-600 hover:bg-green-700 text-white border-green-400'
               }`}
             >
               {showAllSessions ? 'Show Active Only' : 'Show All Sessions'}
             </button>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
@@ -515,46 +521,58 @@ export default function SimpleLobby() {
                 {showAllSessions ? 'No sessions found' : 'No active sessions found'}
               </p>
               <p className="text-gray-500">
-                {showAllSessions 
-                  ? 'Create a new session to get started!' 
-                  : 'Create a new session or show all sessions to see inactive ones'
-                }
+                {showAllSessions
+                  ? 'Create a new session to get started!'
+                  : 'Create a new session or show all sessions to see inactive ones'}
               </p>
             </div>
           ) : (
             <div>
               <div className="mb-4 text-sm text-gray-400">
-                Found {filteredSessions.length} session(s) 
-                {!showAllSessions && Array.isArray(sessions) && sessions.length > filteredSessions.length && 
-                  ` (${sessions.length - filteredSessions.length} inactive hidden)`
-                }
+                Found {filteredSessions.length} session(s)
+                {!showAllSessions &&
+                  Array.isArray(sessions) &&
+                  sessions.length > filteredSessions.length &&
+                  ` (${sessions.length - filteredSessions.length} inactive hidden)`}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredSessions.map((session) => (
-                  <div key={session.id} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors border border-gray-500">
+                  <div
+                    key={session.id}
+                    className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors border border-gray-500"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-lg text-white">{session.name}</h3>
-                      <span className={`px-2 py-1 rounded text-sm font-medium ${
-                        session.status === 'WAITING' ? 'bg-green-600 text-green-100' :
-                        session.status === 'STARTING' ? 'bg-yellow-600 text-yellow-100' :
-                        session.status === 'ACTIVE' ? 'bg-blue-600 text-blue-100' :
-                        'bg-gray-600 text-gray-100'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-sm font-medium ${
+                          session.status === 'WAITING'
+                            ? 'bg-green-600 text-green-100'
+                            : session.status === 'STARTING'
+                              ? 'bg-yellow-600 text-yellow-100'
+                              : session.status === 'ACTIVE'
+                                ? 'bg-blue-600 text-blue-100'
+                                : 'bg-gray-600 text-gray-100'
+                        }`}
+                      >
                         {session.status}
                       </span>
                     </div>
-                    
-                    <p className="text-gray-300 mb-2">Game: {session.game?.name || 'Unknown Game'}</p>
-                    <p className="text-gray-400 mb-2">Host: {session.host?.username || 'Unknown'}</p>
+
+                    <p className="text-gray-300 mb-2">
+                      Game: {session.game?.name || 'Unknown Game'}
+                    </p>
+                    <p className="text-gray-400 mb-2">
+                      Host: {session.host?.username || 'Unknown'}
+                    </p>
                     <p className="text-gray-400 mb-4">
                       Players: {session.players?.length || 0} / {session.maxPlayers}
                     </p>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-500">
                         Created: {new Date(session.createdAt).toLocaleDateString()}
                       </span>
-                      
+
                       <div className="flex gap-2">
                         {session.status === 'WAITING' && (
                           <>
@@ -569,7 +587,7 @@ export default function SimpleLobby() {
                             ) : (
                               <>
                                 {/* Check if user is already in the session */}
-                                {session.players?.some(p => p.user.id === user?.id) ? (
+                                {session.players?.some((p) => p.user.id === user?.id) ? (
                                   <button
                                     onClick={() => leaveSession(session.id)}
                                     className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-medium border border-yellow-400"

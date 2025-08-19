@@ -26,9 +26,9 @@ class WebRTCSignalingServer {
   initialize(server: HTTPServer) {
     if (this.wss) return; // Already initialized
 
-    this.wss = new WebSocketServer({ 
+    this.wss = new WebSocketServer({
       server,
-      path: '/api/webrtc-signal'
+      path: '/api/webrtc-signal',
     });
 
     this.wss.on('connection', (ws: WebSocket, req) => {
@@ -84,23 +84,27 @@ class WebRTCSignalingServer {
     if (!sessionUsers) return;
 
     // Tell the new user about existing peers
-    sessionUsers.forEach(existingUserId => {
+    sessionUsers.forEach((existingUserId) => {
       if (existingUserId !== newUserId) {
         this.sendToUser(sessionId, newUserId, {
           type: 'new-peer',
-          userId: existingUserId
+          userId: existingUserId,
         });
 
         // Tell existing users about the new peer
         this.sendToUser(sessionId, existingUserId, {
           type: 'new-peer',
-          userId: newUserId
+          userId: newUserId,
         });
       }
     });
   }
 
-  private handleSignalingMessage(sessionId: string, fromUserId: string, message: SignalingMessage): void {
+  private handleSignalingMessage(
+    sessionId: string,
+    fromUserId: string,
+    message: SignalingMessage
+  ): void {
     switch (message.type) {
       case 'offer':
       case 'answer':
@@ -108,7 +112,7 @@ class WebRTCSignalingServer {
         if (message.targetUser) {
           this.sendToUser(sessionId, message.targetUser, {
             ...message,
-            userId: fromUserId
+            userId: fromUserId,
           });
         }
         break;
@@ -121,7 +125,7 @@ class WebRTCSignalingServer {
   private sendToUser(sessionId: string, userId: string, message: any): void {
     const connectionId = `${sessionId}-${userId}`;
     const connection = this.connections.get(connectionId);
-    
+
     if (connection && connection.socket.readyState === WebSocket.OPEN) {
       connection.socket.send(JSON.stringify(message));
     }
@@ -134,12 +138,12 @@ class WebRTCSignalingServer {
     const sessionUsers = this.sessions.get(sessionId);
     if (sessionUsers) {
       sessionUsers.delete(userId);
-      
+
       // Notify remaining users
-      sessionUsers.forEach(remainingUserId => {
+      sessionUsers.forEach((remainingUserId) => {
         this.sendToUser(sessionId, remainingUserId, {
           type: 'peer-left',
-          userId: userId
+          userId: userId,
         });
       });
 
@@ -153,7 +157,7 @@ class WebRTCSignalingServer {
   getSessionStats(): { activeSessions: number; totalConnections: number } {
     return {
       activeSessions: this.sessions.size,
-      totalConnections: this.connections.size
+      totalConnections: this.connections.size,
     };
   }
 }
@@ -166,10 +170,10 @@ export default function handler(req: NextApiRequest, res: any) {
     signalingServer.initialize(res.socket.server);
     res.socket.server.webrtcSignaling = signalingServer;
   }
-  
+
   const stats = signalingServer.getSessionStats();
-  res.status(200).json({ 
+  res.status(200).json({
     message: 'WebRTC Signaling Server active',
-    stats
+    stats,
   });
 }

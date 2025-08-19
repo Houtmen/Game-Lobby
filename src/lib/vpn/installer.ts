@@ -6,7 +6,8 @@ import path from 'path';
 const execAsync = promisify(exec);
 
 export class WireGuardInstaller {
-  private static readonly WIREGUARD_DOWNLOAD_URL = 'https://download.wireguard.com/windows-client/wireguard-installer.exe';
+  private static readonly WIREGUARD_DOWNLOAD_URL =
+    'https://download.wireguard.com/windows-client/wireguard-installer.exe';
   private static readonly WINGET_PACKAGE = 'WireGuard.WireGuard';
 
   /**
@@ -49,20 +50,22 @@ export class WireGuardInstaller {
       if (!(await this.isWingetAvailable())) {
         return {
           success: false,
-          message: 'Winget is not available. Please use manual installation.'
+          message: 'Winget is not available. Please use manual installation.',
         };
       }
 
-      const { stdout, stderr } = await execAsync(`winget install ${this.WINGET_PACKAGE} --accept-source-agreements --accept-package-agreements`);
-      
+      const { stdout, stderr } = await execAsync(
+        `winget install ${this.WINGET_PACKAGE} --accept-source-agreements --accept-package-agreements`
+      );
+
       return {
         success: true,
-        message: 'WireGuard installed successfully via winget'
+        message: 'WireGuard installed successfully via winget',
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Winget installation failed: ${error.message}`
+        message: `Winget installation failed: ${error.message}`,
       };
     }
   }
@@ -70,36 +73,41 @@ export class WireGuardInstaller {
   /**
    * Auto-import configuration file to WireGuard
    */
-  static async importConfiguration(configPath: string, tunnelName: string): Promise<{ success: boolean; message: string }> {
+  static async importConfiguration(
+    configPath: string,
+    tunnelName: string
+  ): Promise<{ success: boolean; message: string }> {
     try {
       // Try to import using WireGuard CLI
       await execAsync(`wg-quick up "${configPath}"`);
-      
+
       return {
         success: true,
-        message: `Configuration "${tunnelName}" imported and activated successfully`
+        message: `Configuration "${tunnelName}" imported and activated successfully`,
       };
     } catch (error: any) {
       // Fallback: copy to WireGuard data directory
       try {
-        const appData = process.env['LOCALAPPDATA'] || path.join(process.env['USERPROFILE'] || '', 'AppData', 'Local');
+        const appData =
+          process.env['LOCALAPPDATA'] ||
+          path.join(process.env['USERPROFILE'] || '', 'AppData', 'Local');
         const wireguardData = path.join(appData, 'WireGuard', 'Data', 'Configurations');
-        
+
         // Ensure directory exists
         await fs.mkdir(wireguardData, { recursive: true });
-        
+
         // Copy configuration file
         const targetPath = path.join(wireguardData, `${tunnelName}.conf`);
         await fs.copyFile(configPath, targetPath);
-        
+
         return {
           success: true,
-          message: `Configuration copied to WireGuard. Please activate it manually in the WireGuard app.`
+          message: `Configuration copied to WireGuard. Please activate it manually in the WireGuard app.`,
         };
       } catch (copyError: any) {
         return {
           success: false,
-          message: `Failed to import configuration: ${error.message}`
+          message: `Failed to import configuration: ${error.message}`,
         };
       }
     }
@@ -112,18 +120,18 @@ export class WireGuardInstaller {
     try {
       const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
       const wireguardPath = path.join(programFiles, 'WireGuard', 'wireguard.exe');
-      
+
       // Start WireGuard application
       exec(`"${wireguardPath}"`);
-      
+
       return {
         success: true,
-        message: 'WireGuard application opened'
+        message: 'WireGuard application opened',
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to open WireGuard: ${error.message}`
+        message: `Failed to open WireGuard: ${error.message}`,
       };
     }
   }
@@ -137,7 +145,7 @@ export class WireGuardInstaller {
       '2. Run the installer as Administrator',
       '3. Follow the installation wizard',
       '4. Restart your computer if prompted',
-      '5. Come back to this page and try again'
+      '5. Come back to this page and try again',
     ];
   }
 

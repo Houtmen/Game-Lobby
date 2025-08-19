@@ -25,20 +25,16 @@ export async function GET(request: NextRequest) {
       status: game.status,
       startTime: game.startTime,
       exitCode: game.exitCode,
-      isRunning: game.status === 'running'
+      isRunning: game.status === 'running',
     }));
 
     return NextResponse.json({
       runningGames: gameStatuses,
-      totalRunning: gameStatuses.filter((g: any) => g.isRunning).length
+      totalRunning: gameStatuses.filter((g: any) => g.isRunning).length,
     });
-
   } catch (error) {
     console.error('Game status error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get game status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get game status' }, { status: 500 });
   }
 }
 
@@ -68,20 +64,16 @@ export async function POST(request: NextRequest) {
       status: process.status,
       startTime: process.startTime,
       exitCode: process.exitCode,
-      isRunning: process.status === 'running'
+      isRunning: process.status === 'running',
     }));
 
     return NextResponse.json({
       updatedProcesses: processStatuses,
       totalUpdated: userProcesses.length,
-      totalRunning: processStatuses.filter((p: any) => p.isRunning).length
+      totalRunning: processStatuses.filter((p: any) => p.isRunning).length,
     });
-
   } catch (error) {
     console.error('Process status update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update process statuses' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update process statuses' }, { status: 500 });
   }
 }

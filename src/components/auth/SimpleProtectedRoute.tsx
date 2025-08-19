@@ -17,7 +17,7 @@ export default function SimpleProtectedRoute({ children }: SimpleProtectedRouteP
       // Check for stored user data
       const storedUser = localStorage.getItem('user');
       const storedToken = localStorage.getItem('accessToken');
-      
+
       if (storedUser && storedToken) {
         try {
           JSON.parse(storedUser); // Validate JSON
@@ -31,7 +31,7 @@ export default function SimpleProtectedRoute({ children }: SimpleProtectedRouteP
       } else {
         setIsAuthenticated(false);
       }
-      
+
       setIsLoading(false);
     };
 

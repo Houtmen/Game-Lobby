@@ -15,14 +15,17 @@ export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, 12);
 };
 
-export const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+export const verifyPassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
 export const generateTokens = (payload: JWTPayload) => {
   const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
   const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
-  
+
   return { accessToken, refreshToken };
 };
 

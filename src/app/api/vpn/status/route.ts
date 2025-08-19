@@ -17,33 +17,29 @@ export async function GET(request: NextRequest) {
 
     // Check WireGuard availability
     const isWireGuardAvailable = await wireGuardManager.checkWireGuardAvailability();
-    
+
     // Get active VPN sessions
     const activeSessions = wireGuardManager.getActiveVPNSessions();
-    
+
     // Filter to sessions where user is a participant
-    const userSessions = activeSessions.filter(session => 
+    const userSessions = activeSessions.filter((session) =>
       session.participants.includes(decoded.userId)
     );
 
     return NextResponse.json({
       wireGuardAvailable: isWireGuardAvailable,
       activeSessions: userSessions.length,
-      userVPNSessions: userSessions.map(session => ({
+      userVPNSessions: userSessions.map((session) => ({
         networkId: session.networkId,
         sessionId: session.sessionId,
         isActive: session.isActive,
         createdAt: session.createdAt,
-        participantCount: session.participants.length
-      }))
+        participantCount: session.participants.length,
+      })),
     });
-
   } catch (error) {
     console.error('VPN status error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get VPN status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get VPN status' }, { status: 500 });
   }
 }
 
@@ -74,14 +70,10 @@ export async function POST(request: NextRequest) {
       message: 'VPN health check completed',
       wireGuardAvailable: isAvailable,
       activeSessionsCount: activeSessions.length,
-      cleanupCompleted: true
+      cleanupCompleted: true,
     });
-
   } catch (error) {
     console.error('VPN health check error:', error);
-    return NextResponse.json(
-      { error: 'Failed to perform VPN health check' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to perform VPN health check' }, { status: 500 });
   }
 }

@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  FaDownload, 
-  FaCheckCircle, 
+import {
+  FaDownload,
+  FaCheckCircle,
   FaExclamationTriangle,
   FaCog,
   FaPlay,
   FaQuestionCircle,
   FaWindows,
   FaTerminal,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
 } from 'react-icons/fa';
 
 interface WireGuardSetupProps {
@@ -19,7 +19,9 @@ interface WireGuardSetupProps {
 }
 
 export default function WireGuardSetup({ onInstallComplete, onSkipInstall }: WireGuardSetupProps) {
-  const [installationStatus, setInstallationStatus] = useState<'checking' | 'not-installed' | 'installed' | 'installing'>('checking');
+  const [installationStatus, setInstallationStatus] = useState<
+    'checking' | 'not-installed' | 'installed' | 'installing'
+  >('checking');
   const [installMethod, setInstallMethod] = useState<'winget' | 'manual' | 'script'>('winget');
   const [error, setError] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -32,7 +34,7 @@ export default function WireGuardSetup({ onInstallComplete, onSkipInstall }: Wir
     try {
       const response = await fetch('/api/vpn/installation-check');
       const result = await response.json();
-      
+
       setInstallationStatus(result.isInstalled ? 'installed' : 'not-installed');
     } catch (error) {
       console.error('Failed to check WireGuard installation:', error);
@@ -50,11 +52,11 @@ export default function WireGuardSetup({ onInstallComplete, onSkipInstall }: Wir
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ method: 'winget' })
+        body: JSON.stringify({ method: 'winget' }),
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setInstallationStatus('installed');
         onInstallComplete();
@@ -158,7 +160,9 @@ try {
         <FaExclamationTriangle className="w-6 h-6 text-yellow-600" />
         <div>
           <h3 className="font-semibold text-gray-900">WireGuard VPN Required</h3>
-          <p className="text-sm text-gray-600">This game requires VPN networking to connect with other players</p>
+          <p className="text-sm text-gray-600">
+            This game requires VPN networking to connect with other players
+          </p>
         </div>
       </div>
 
@@ -216,9 +220,7 @@ try {
               <FaTerminal className="w-5 h-5 text-purple-600" />
               <h5 className="font-medium">PowerShell Script</h5>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Download script to run as administrator
-            </p>
+            <p className="text-sm text-gray-600 mb-4">Download script to run as administrator</p>
             <button
               onClick={downloadInstallScript}
               className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
@@ -234,9 +236,7 @@ try {
               <FaWindows className="w-5 h-5 text-gray-600" />
               <h5 className="font-medium">Manual Download</h5>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Download from official WireGuard website
-            </p>
+            <p className="text-sm text-gray-600 mb-4">Download from official WireGuard website</p>
             <a
               href="https://www.wireguard.com/install/"
               target="_blank"
@@ -256,18 +256,23 @@ try {
             <div className="space-y-2 text-sm text-blue-800">
               <div className="flex items-start gap-2">
                 <span className="font-medium">Option 1:</span>
-                <span>Click "Install Now" for automatic installation (requires Windows 10+ with winget)</span>
+                <span>
+                  Click "Install Now" for automatic installation (requires Windows 10+ with winget)
+                </span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-medium">Option 2:</span>
-                <span>Download PowerShell script, right-click → "Run with PowerShell" as Administrator</span>
+                <span>
+                  Download PowerShell script, right-click → "Run with PowerShell" as Administrator
+                </span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-medium">Option 3:</span>
                 <span>Visit WireGuard website, download installer, run as Administrator</span>
               </div>
               <div className="mt-3 p-2 bg-blue-100 rounded">
-                <strong>After installation:</strong> Refresh this page and the VPN panel will appear in your game session.
+                <strong>After installation:</strong> Refresh this page and the VPN panel will appear
+                in your game session.
               </div>
             </div>
           </div>

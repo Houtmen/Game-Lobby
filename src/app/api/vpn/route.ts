@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { wireGuardManager } from '@/lib/vpn/wireguard';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 // POST /api/vpn/create - Create VPN network for session
 export async function POST(request: NextRequest) {
@@ -29,19 +30,19 @@ export async function POST(request: NextRequest) {
       include: {
         players: {
           include: {
-            user: true
-          }
+            user: true,
+          },
         },
-        game: true
-      }
+        game: true,
+      },
     });
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    // Verify user is host or participant
-    const isHost = session.hostPlayerId === decoded.userId;
+  // Verify user is host or participant
+  const isHost = session.hostId === decoded.userId;
     const isParticipant = session.players.some((p: any) => p.userId === decoded.userId);
 
     if (!isHost && !isParticipant) {
@@ -59,9 +60,9 @@ export async function POST(request: NextRequest) {
     // Check if VPN network already exists
     const existingVPN = wireGuardManager.getVPNSession(`lobby-${sessionId}`);
     if (existingVPN) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         vpnSession: existingVPN,
-        message: 'VPN network already exists'
+        message: 'VPN network already exists',
       });
     }
 
@@ -75,16 +76,15 @@ export async function POST(request: NextRequest) {
         vpnConfig: {
           networkId: vpnSession.networkId,
           isActive: false,
-          createdAt: vpnSession.createdAt.toISOString()
-        }
-      }
+          createdAt: vpnSession.createdAt.toISOString(),
+        },
+      },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       vpnSession,
-      message: 'VPN network created successfully' 
+      message: 'VPN network created successfully',
     });
-
   } catch (error) {
     console.error('VPN creation error:', error);
     return NextResponse.json(
@@ -112,21 +112,21 @@ export async function GET(request: NextRequest) {
       where: {
         players: {
           some: {
-            userId: decoded.userId
-          }
+            userId: decoded.userId,
+          },
         },
         vpnConfig: {
-          not: null
-        }
+          not: Prisma.JsonNull,
+        },
       },
       include: {
         game: true,
         players: {
           include: {
-            user: true
-          }
-        }
-      }
+            user: true,
+          },
+        },
+      },
     });
 
     // Get VPN session details for each
@@ -136,17 +136,13 @@ export async function GET(request: NextRequest) {
         sessionId: session.id,
         sessionName: session.name,
         gameName: session.game.name,
-        vpnSession: vpnSession || null
+        vpnSession: vpnSession || null,
       };
     });
 
     return NextResponse.json({ vpnSessions });
-
   } catch (error) {
     console.error('VPN list error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get VPN sessions' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get VPN sessions' }, { status: 500 });
   }
 }
