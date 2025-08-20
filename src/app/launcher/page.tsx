@@ -212,7 +212,7 @@ export default function GameLauncherPage() {
             <p>{error}</p>
             <button
               onClick={() => setError(null)}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              className="mt-2 text-sm inline-flex px-3 py-1 text-white font-semibold rounded-lg border-2 bg-rose-600 hover:bg-rose-700 border-rose-400"
             >
               Dismiss
             </button>

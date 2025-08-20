@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui';
 
 export default function SettingsPage() {
   type Settings = {
@@ -183,20 +184,9 @@ export default function SettingsPage() {
                     {saveMessage}
                   </span>
                 )}
-                <button
-                  onClick={handleSaveSettings}
-                  disabled={isSaving}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-2 px-6 rounded-md transition-colors flex items-center space-x-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <span>Save Settings</span>
-                  )}
-                </button>
+                <Button onClick={handleSaveSettings} disabled={isSaving} variant="blue">
+                  {isSaving ? 'Saving...' : 'Save Settings'}
+                </Button>
               </div>
             </div>
           </div>
