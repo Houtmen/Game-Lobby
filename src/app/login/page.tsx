@@ -1,5 +1,5 @@
-import SimpleLoginPage from '@/components/auth/SimpleLoginPage';
+import EnhancedLoginPage from '@/components/auth/EnhancedLoginPage';
 
 export default function LoginPage() {
-  return <SimpleLoginPage />;
+  return <EnhancedLoginPage />;
 }
