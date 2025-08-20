@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Monitor, Users, Play, Square, Clock, Activity, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 interface ActiveGame {
   processId: number;
@@ -122,12 +123,7 @@ export const GameManager: React.FC = () => {
           <AlertTriangle className="w-5 h-5 mr-2" />
           <span>Error: {error}</span>
         </div>
-        <button
-          onClick={fetchActiveGames}
-          className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Retry
-        </button>
+  <Button onClick={fetchActiveGames} variant="rose" padding="sm">Retry</Button>
       </div>
     );
   }

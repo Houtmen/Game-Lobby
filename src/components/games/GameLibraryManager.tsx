@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button, buttonClasses } from '@/components/ui';
 
 interface Game {
   id: string;
@@ -219,10 +220,10 @@ export default function GameLibraryManager() {
             <p>{error}</p>
             <button
               onClick={() => setError(null)}
-              className={`mt-2 px-3 py-1 rounded text-sm ${
+              className={`mt-2 text-sm inline-flex px-3 py-1 text-white font-semibold rounded-lg border-2 ${
                 error.startsWith('✅')
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-red-600 hover:bg-red-700 text-white'
+                  ? 'bg-green-600 hover:bg-green-700 border-green-400'
+                  : 'bg-rose-600 hover:bg-rose-700 border-rose-400'
               }`}
             >
               Dismiss
@@ -234,34 +235,18 @@ export default function GameLibraryManager() {
         <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-600">
           <h2 className="text-2xl font-semibold mb-4 text-white">Game Management</h2>
           <div className="flex flex-wrap gap-4 mb-4">
-            <button
-              onClick={() => scanForGames(false)}
-              disabled={scanning || loading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg border border-purple-400"
-            >
+            <Button onClick={() => scanForGames(false)} disabled={scanning || loading} variant="purple">
               {scanning ? 'Scanning System...' : 'Scan Common Locations'}
-            </button>
-            <button
-              onClick={() => scanForGames(true)}
-              disabled={scanning || loading || customPaths.length === 0}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white font-semibold py-3 px-6 rounded-lg border border-indigo-400"
-            >
+            </Button>
+            <Button onClick={() => scanForGames(true)} disabled={scanning || loading || customPaths.length === 0} variant="indigo">
               {scanning ? 'Scanning...' : 'Scan Custom Paths'}
-            </button>
-            <button
-              onClick={() => setShowManualAdd(true)}
-              disabled={scanning}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg border border-blue-400"
-            >
+            </Button>
+            <Button onClick={() => setShowManualAdd(true)} disabled={scanning} variant="blue">
               Add Game Manually
-            </button>
-            <button
-              onClick={loadGames}
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg border border-green-400"
-            >
+            </Button>
+            <Button onClick={loadGames} disabled={loading} variant="green">
               {loading ? 'Loading...' : 'Refresh List'}
-            </button>
+            </Button>
           </div>
 
           {/* Custom Paths Section */}
@@ -276,12 +261,7 @@ export default function GameLibraryManager() {
                 className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
                 onKeyPress={(e) => e.key === 'Enter' && addCustomPath()}
               />
-              <button
-                onClick={addCustomPath}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
-              >
-                Add Path
-              </button>
+              <Button onClick={addCustomPath} variant="gray" padding="sm">Add Path</Button>
             </div>
             {customPaths.length > 0 && (
               <div className="space-y-2">
@@ -291,12 +271,7 @@ export default function GameLibraryManager() {
                     className="flex items-center justify-between bg-gray-700 px-3 py-2 rounded"
                   >
                     <span className="text-sm text-gray-300">{path}</span>
-                    <button
-                      onClick={() => removeCustomPath(index)}
-                      className="text-red-400 hover:text-red-300 text-sm"
-                    >
-                      Remove
-                    </button>
+                    <button onClick={() => removeCustomPath(index)} className="text-rose-300 hover:text-rose-200 text-sm">Remove</button>
                   </div>
                 ))}
               </div>
@@ -335,23 +310,8 @@ export default function GameLibraryManager() {
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowManualAdd(false);
-                      setManualPath('');
-                      setManualName('');
-                    }}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={addManualGame}
-                    disabled={!manualPath.trim() || scanning}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded"
-                  >
-                    {scanning ? 'Adding...' : 'Add Game'}
-                  </button>
+                  <Button onClick={() => { setShowManualAdd(false); setManualPath(''); setManualName(''); }} variant="gray" padding="sm">Cancel</Button>
+                  <Button onClick={addManualGame} disabled={!manualPath.trim() || scanning} variant="blue" padding="sm">{scanning ? 'Adding...' : 'Add Game'}</Button>
                 </div>
               </div>
             </div>
@@ -431,16 +391,9 @@ export default function GameLibraryManager() {
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <button
-                          onClick={() => toggleGameActive(game.id, game.isActive)}
-                          className={`px-3 py-1 rounded text-sm ${
-                            game.isActive
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}
-                        >
+                        <Button onClick={() => toggleGameActive(game.id, game.isActive)} variant={game.isActive ? 'rose' : 'green'} padding="sm">
                           {game.isActive ? 'Disable' : 'Enable'}
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import FriendSelector from '@/components/friends/FriendSelector';
 import { GameLauncher } from '@/components/games/GameLauncher';
+import { Button } from '@/components/ui';
 
 interface Game {
   id: string;
@@ -326,12 +327,7 @@ export default function BasicLobby() {
           <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
             <p className="font-bold">Error</p>
             <p>{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-            >
-              Dismiss
-            </button>
+            <Button onClick={() => setError(null)} variant="rose" padding="sm">Dismiss</Button>
           </div>
         )}
 
@@ -339,25 +335,9 @@ export default function BasicLobby() {
         <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-600">
           <h2 className="text-2xl font-semibold mb-4 text-white">Quick Actions</h2>
           <div className="flex flex-wrap gap-4">
-            <button
-              onClick={createSession}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg"
-            >
-              Create New Session
-            </button>
-            <button
-              onClick={loadSessions}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg"
-            >
-              Refresh Sessions
-            </button>
-            <button
-              onClick={scanForGames}
-              disabled={loading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg"
-            >
-              {loading ? 'Scanning...' : 'Scan for Games'}
-            </button>
+            <Button onClick={createSession} variant="blue">Create New Session</Button>
+            <Button onClick={loadSessions} variant="green">Refresh Sessions</Button>
+            <Button onClick={scanForGames} disabled={loading} variant="purple">{loading ? 'Scanning...' : 'Scan for Games'}</Button>
           </div>
           <div className="mt-4 text-sm text-gray-400">
             <p>Games found: {games.length}</p>
@@ -370,16 +350,9 @@ export default function BasicLobby() {
             <h2 className="text-2xl font-semibold text-white">
               {showAllSessions ? 'All Game Sessions' : 'Active Game Sessions'}
             </h2>
-            <button
-              onClick={() => setShowAllSessions(!showAllSessions)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                showAllSessions
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
+            <Button onClick={() => setShowAllSessions(!showAllSessions)} variant={showAllSessions ? 'amber' : 'green'}>
               {showAllSessions ? 'Show Active Only' : 'Show All Sessions'}
-            </button>
+            </Button>
           </div>
 
           {loading ? (
@@ -451,42 +424,16 @@ export default function BasicLobby() {
                         <>
                           {session.host?.id === user?.id ? (
                             <>
-                              <button
-                                onClick={() => openFriendSelector(session.id)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm"
-                              >
-                                Invite Friends
-                              </button>
-                              <button
-                                onClick={() => startSession(session.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded font-medium text-sm"
-                                disabled={!session.players || session.players.length < 1}
-                              >
-                                Start Game
-                              </button>
-                              <button
-                                onClick={() => deleteSession(session.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-medium text-sm"
-                              >
-                                Delete
-                              </button>
+                              <Button onClick={() => openFriendSelector(session.id)} variant="blue" padding="sm">Invite Friends</Button>
+                              <Button onClick={() => startSession(session.id)} variant="green" padding="sm" disabled={!session.players || session.players.length < 1}>Start Game</Button>
+                              <Button onClick={() => deleteSession(session.id)} variant="rose" padding="sm">Delete</Button>
                             </>
                           ) : (
                             <>
                               {session.players?.some((p) => p.user.id === user?.id) ? (
-                                <button
-                                  onClick={() => leaveSession(session.id)}
-                                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded font-medium text-sm"
-                                >
-                                  Leave
-                                </button>
+                                <Button onClick={() => leaveSession(session.id)} variant="amber" padding="sm">Leave</Button>
                               ) : (
-                                <button
-                                  onClick={() => joinSession(session.id)}
-                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded font-medium text-sm"
-                                >
-                                  Join
-                                </button>
+                                <Button onClick={() => joinSession(session.id)} variant="green" padding="sm">Join</Button>
                               )}
                             </>
                           )}

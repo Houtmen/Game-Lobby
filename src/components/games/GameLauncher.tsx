@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Square, Monitor, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui';
 import { io, Socket } from 'socket.io-client';
 
 interface GameLauncherProps {
@@ -261,46 +262,24 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
         </div>
 
         <div className="flex gap-2">
-          <button
-            onClick={launchGame}
-            disabled={!canLaunch}
-            className={`
-              px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors
-              ${
-                canLaunch
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }
-            `}
-          >
+          <Button onClick={launchGame} disabled={!canLaunch} variant="green">
             {isLaunching ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Play className="w-4 h-4" />
             )}
             Launch Game
-          </button>
+          </Button>
 
           {isGameRunning && (
-            <button
-              onClick={terminateGame}
-              disabled={!canTerminate}
-              className={`
-                px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors
-                ${
-                  canTerminate
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }
-              `}
-            >
+            <Button onClick={terminateGame} disabled={!canTerminate} variant="rose">
               {isTerminating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Square className="w-4 h-4" />
               )}
               Stop Game
-            </button>
+            </Button>
           )}
         </div>
       </div>
