@@ -12,7 +12,11 @@ export default [
     ignores: [
       '.next/**',
       'node_modules/**',
-      'prisma/**.js',
+  // ignore dev/seed scripts
+  'scripts/dev/**',
+  // ignore prisma seed/build outputs (ts/js)
+  'prisma/**/*.ts',
+  'prisma/**/*.js',
       '*.config.js',
       '*.config.cjs',
       'tsconfig.tsbuildinfo',
