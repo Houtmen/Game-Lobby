@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import WireGuardInstaller from '@/lib/vpn/installer';
 
 // GET /api/vpn/installation-check - Check if WireGuard is installed
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const isInstalled = await WireGuardInstaller.isWireGuardInstalled();
     const isWingetAvailable = await WireGuardInstaller.isWingetAvailable();

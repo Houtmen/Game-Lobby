@@ -13,6 +13,7 @@ import {
   FaTrash,
   FaPlay,
 } from 'react-icons/fa';
+import Image from 'next/image';
 
 interface EnhancedGameLibraryProps {
   games: Game[];
@@ -203,7 +204,7 @@ export default function EnhancedGameLibrary({
               game={game}
               viewMode={viewMode}
               onDelete={userCanManage ? () => onDeleteGame(game.id) : undefined}
-              onConfigure={userCanManage ? () => console.log('Configure', game.id) : undefined}
+              onConfigure={userCanManage ? () => console.warn('Configure', game.id) : undefined}
             />
           ))}
         </div>
@@ -237,9 +238,11 @@ function GameCard({ game, viewMode, onDelete, onConfigure }: GameCardProps) {
   if (viewMode === 'list') {
     return (
       <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-        <img
+        <Image
           src={game.iconUrl || '/default-game-icon.png'}
           alt={game.name}
+          width={48}
+          height={48}
           className="w-12 h-12 rounded object-cover"
         />
         <div className="flex-1 min-w-0">
@@ -286,9 +289,11 @@ function GameCard({ game, viewMode, onDelete, onConfigure }: GameCardProps) {
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-200 group">
       <div className="aspect-video bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
         {game.bannerUrl ? (
-          <img
+          <Image
             src={game.bannerUrl}
             alt={game.name}
+            width={1280}
+            height={720}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import { processMonitor, ProcessMetrics, ProcessAlert } from './processMonitor';
+import { getProcessMonitor, ProcessMetrics, ProcessAlert } from './processMonitor';
 
 const execAsync = promisify(exec);
 
@@ -63,7 +63,8 @@ export class GameLauncher {
    * Setup event listeners for process monitoring
    */
   private setupProcessMonitoringListeners(): void {
-    processMonitor.on('processCrashed', (alert: ProcessAlert) => {
+  const processMonitor = getProcessMonitor();
+  processMonitor.on('process_crash', (alert: ProcessAlert) => {
       const processKey = this.findProcessKey(alert.processId);
       if (processKey) {
         const gameProcess = this.activeProcesses.get(processKey);
@@ -79,13 +80,11 @@ export class GameLauncher {
       }
     });
 
-    processMonitor.on('processAlert', (alert: ProcessAlert) => {
+  processMonitor.on('process_alert', (alert: ProcessAlert) => {
       console.log(`⚠️ Process alert: ${alert.type} for PID ${alert.processId} - ${alert.message}`);
     });
 
-    processMonitor.on('processRecovered', (alert: ProcessAlert) => {
-      console.log(`✅ Process recovered: PID ${alert.processId} - ${alert.message}`);
-    });
+  // Recovery events can be emitted by health checker in the future
   }
 
   /**
@@ -224,7 +223,7 @@ export class GameLauncher {
 
       // Add to process monitoring
       if (childProcess.pid) {
-        processMonitor.addProcess(
+        getProcessMonitor().addProcess(
           childProcess.pid,
           gameId,
           sessionId,
@@ -273,7 +272,7 @@ export class GameLauncher {
 
       // Remove from process monitoring
       if (gameProcess.processId) {
-        processMonitor.removeProcess(gameProcess.processId);
+        getProcessMonitor().removeProcess(gameProcess.processId);
       }
 
       return true;
@@ -298,7 +297,7 @@ export class GameLauncher {
     }
 
     // Get current metrics from process monitor
-    const metrics = processMonitor.getProcessMetrics(gameProcess.processId);
+  const metrics = getProcessMonitor().getProcessMetrics(gameProcess.processId);
 
     return {
       ...gameProcess,
@@ -332,7 +331,7 @@ export class GameLauncher {
     sessionProcesses.forEach((process) => {
       if (process.status === 'running') {
         running++;
-        const metrics = processMonitor.getProcessMetrics(process.processId);
+  const metrics = getProcessMonitor().getProcessMetrics(process.processId);
         if (metrics) {
           totalCpu += metrics.cpuUsage;
           totalMemory += metrics.memoryUsage;
@@ -400,7 +399,7 @@ export class GameLauncher {
 
     for (const gameProcess of this.activeProcesses.values()) {
       if (gameProcess.status === 'running') {
-        const metrics = processMonitor.getProcessMetrics(gameProcess.processId);
+        const metrics = getProcessMonitor().getProcessMetrics(gameProcess.processId);
         if (metrics) {
           allMetrics.push(metrics);
         }
@@ -480,7 +479,7 @@ export class GameLauncher {
 
       // Remove from process monitoring
       if (gameProcess.processId) {
-        processMonitor.removeProcess(gameProcess.processId);
+        getProcessMonitor().removeProcess(gameProcess.processId);
       }
 
       console.log(`Game process exited: PID ${childProcess.pid}, Code: ${code}, Signal: ${signal}`);
@@ -572,14 +571,14 @@ export class GameLauncher {
       return null;
     }
 
-    return processMonitor.getProcessMetrics(gameProcess.processId);
+  return getProcessMonitor().getProcessMetrics(gameProcess.processId);
   }
 
   /**
    * Get all process metrics for a session
    */
   getSessionMetrics(sessionId: string) {
-    return processMonitor.getSessionMetrics(sessionId);
+  return getProcessMonitor().getSessionMetrics(sessionId);
   }
 
   /**
@@ -641,16 +640,27 @@ export class GameLauncher {
   }
 }
 
-// Export singleton instance
-export const gameLauncher = new GameLauncher();
+// Lazy, process-wide singleton accessor to avoid import-time side effects
+declare global {
+  var __gameLauncherSingleton: GameLauncher | undefined;
+}
 
-// Clean shutdown
-process.on('SIGINT', () => {
-  gameLauncher.destroy();
-  process.exit(0);
-});
+export function getGameLauncher(): GameLauncher {
+  if (!globalThis.__gameLauncherSingleton) {
+    globalThis.__gameLauncherSingleton = new GameLauncher();
 
-process.on('SIGTERM', () => {
-  gameLauncher.destroy();
-  process.exit(0);
-});
+    try {
+      process.once('SIGINT', () => {
+        globalThis.__gameLauncherSingleton?.destroy();
+        process.exit(0);
+      });
+      process.once('SIGTERM', () => {
+        globalThis.__gameLauncherSingleton?.destroy();
+        process.exit(0);
+      });
+    } catch {
+      // Ignore if signals are unavailable
+    }
+  }
+  return globalThis.__gameLauncherSingleton;
+}

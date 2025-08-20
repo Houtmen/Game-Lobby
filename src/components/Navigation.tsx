@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@/types';
+import Image from 'next/image';
 
 interface NavigationProps {
   user?: User;
@@ -67,6 +68,36 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               >
                 Friends
               </Link>
+              <Link
+                href="/profiles"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Profiles
+              </Link>
+              <Link
+                href="/mods"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Mods
+              </Link>
+              <Link
+                href="/recordings"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Recordings
+              </Link>
+              <Link
+                href="/saves"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Saves
+              </Link>
+              <Link
+                href="/tournaments"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Tournaments
+              </Link>
             </div>
           </div>
 
@@ -80,9 +111,11 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                 >
                   <div className="relative">
                     {user.avatar ? (
-                      <img
+                      <Image
                         src={user.avatar}
                         alt={user.username}
+                        width={36}
+                        height={36}
                         className="w-9 h-9 rounded-full object-cover border-2 border-blue-400 shadow-md"
                       />
                     ) : (
@@ -219,7 +252,6 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               <button
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none"
                 onClick={() => {
-                  console.log('Mobile menu button clicked, current state:', isMobileMenuOpen);
                   setIsMobileMenuOpen(!isMobileMenuOpen);
                 }}
               >
@@ -261,6 +293,41 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Friends
+              </Link>
+              <Link
+                href="/profiles"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Profiles
+              </Link>
+              <Link
+                href="/mods"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Mods
+              </Link>
+              <Link
+                href="/recordings"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Recordings
+              </Link>
+              <Link
+                href="/saves"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Saves
+              </Link>
+              <Link
+                href="/tournaments"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Tournaments
               </Link>
             </div>
           </div>

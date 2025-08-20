@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Friend } from '@/types';
+import Image from 'next/image';
 
 interface FriendSelectorProps {
   sessionId: string;
@@ -136,9 +137,11 @@ export default function FriendSelector({ sessionId, onInviteSent, onClose }: Fri
                   <div className="flex items-center space-x-3 flex-1">
                     <div className="relative">
                       {friend.avatar ? (
-                        <img
+                        <Image
                           src={friend.avatar}
                           alt={friend.username}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full"
                         />
                       ) : (

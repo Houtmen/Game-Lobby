@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/utils';
-import { gameLauncher } from '@/lib/gameLibrary/launcher';
-import { processMonitor } from '@/lib/gameLibrary/processMonitor';
+import { getGameLauncher } from '@/lib/gameLibrary/launcher';
+import { getProcessMonitor } from '@/lib/gameLibrary/processMonitor';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     // Get specific process metrics
     if (processId) {
       const pid = parseInt(processId);
-      const metrics = processMonitor.getProcessMetrics(pid);
+  const metrics = getProcessMonitor().getProcessMetrics(pid);
 
       if (!metrics) {
         return NextResponse.json(
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // Get session health summary
     if (sessionId && type === 'health') {
-      const healthSummary = gameLauncher.getSessionHealthSummary(sessionId);
+  const healthSummary = getGameLauncher().getSessionHealthSummary(sessionId);
       return NextResponse.json({
         success: true,
         sessionId,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     // Get session processes with enhanced metrics
     if (sessionId) {
-      const sessionProcesses = processMonitor.getSessionMetrics(sessionId);
+  const sessionProcesses = getProcessMonitor().getSessionMetrics(sessionId);
       return NextResponse.json({
         success: true,
         sessionId,
@@ -56,9 +56,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all user processes (simplified - filter by user from all metrics)
-    const allUserMetrics = processMonitor.getAllMetrics();
+  const allUserMetrics = getProcessMonitor().getAllMetrics();
     const userProcesses = allUserMetrics.filter((metrics) => metrics.userId === user.id);
-    const launcherMetrics = gameLauncher.getAllProcessMetrics();
+  const launcherMetrics = getGameLauncher().getAllProcessMetrics();
 
     return NextResponse.json({
       success: true,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-          const restarted = await gameLauncher.restartGame(sessionId, user.id);
+          const restarted = await getGameLauncher().restartGame(sessionId, user.id);
           return NextResponse.json({
             success: true,
             message: 'Game restarted successfully',
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
 
       case 'terminate':
         if (sessionId) {
-          const terminated = await gameLauncher.terminateGame(sessionId, user.id);
+          const terminated = await getGameLauncher().terminateGame(sessionId, user.id);
           return NextResponse.json({
             success: terminated,
             message: terminated ? 'Game terminated successfully' : 'No running game found',
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const processMetrics = processMonitor.getProcessMetrics(parseInt(processId));
+  const processMetrics = getProcessMonitor().getProcessMetrics(parseInt(processId));
         return NextResponse.json({
           success: true,
           healthStatus: processMetrics

@@ -57,6 +57,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .text-blue-400 { color: #60a5fa; }
             .text-green-400 { color: #34d399; }
             .text-red-400 { color: #f87171; }
+            .inline-flex { display: inline-flex; }
+            .items-center { align-items: center; }
+            .justify-center { justify-content: center; }
             .min-h-screen { min-height: 100vh; }
             .flex { display: flex; }
             .items-center { align-items: center; }
@@ -68,10 +71,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .font-bold { font-weight: 700; }
             .font-semibold { font-weight: 600; }
             .rounded-lg { border-radius: 0.5rem; }
+            .border-2 { border-width: 2px; }
             .p-4 { padding: 1rem; }
             .p-6 { padding: 1.5rem; }
             .px-4 { padding-left: 1rem; padding-right: 1rem; }
+            .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .px-8 { padding-left: 2rem; padding-right: 2rem; }
             .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+            .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
             .mb-4 { margin-bottom: 1rem; }
             .mb-8 { margin-bottom: 2rem; }
             .mr-2 { margin-right: 0.5rem; }
@@ -156,6 +163,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .bg-gray-700 {
               background-color: #374151;
             }
+
+            /* Additional palette used by shared Button */
+            .bg-amber-600 { background-color: #d97706; color: white; padding: 0.75rem 1.5rem; }
+            .bg-amber-600:hover { background-color: #b45309; }
+            .bg-cyan-600 { background-color: #0891b2; color: white; padding: 0.75rem 1.5rem; }
+            .bg-cyan-600:hover { background-color: #0e7490; }
+            .bg-teal-600 { background-color: #0d9488; color: white; padding: 0.75rem 1.5rem; }
+            .bg-teal-600:hover { background-color: #0f766e; }
+            .bg-indigo-600 { background-color: #4f46e5; color: white; padding: 0.75rem 1.5rem; }
+            .bg-indigo-600:hover { background-color: #4338ca; }
+            .bg-rose-600 { background-color: #e11d48; color: white; padding: 0.75rem 1.5rem; }
+            .bg-rose-600:hover { background-color: #be123c; }
+
+            /* Border color utilities */
+            .border { border-width: 1px; }
+            .border-blue-400 { border-color: #60a5fa; }
+            .border-green-400 { border-color: #4ade80; }
+            .border-purple-400 { border-color: #c084fc; }
+            .border-amber-400 { border-color: #fbbf24; }
+            .border-cyan-400 { border-color: #22d3ee; }
+            .border-teal-400 { border-color: #2dd4bf; }
+            .border-indigo-400 { border-color: #818cf8; }
+            .border-rose-400 { border-color: #fb7185; }
             
             .bg-red-600 {
               background-color: #dc2626;
@@ -169,6 +199,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             .bg-red-700 {
               background-color: #b91c1c;
             }
+
+            /* Shadows */
+            .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .hover\\:shadow-lg:hover { box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
             
             /* Additional utility classes */
             .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }

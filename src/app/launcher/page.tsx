@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { GameLauncher } from '@/components/games/GameLauncher';
-import { Play, Square, Monitor, Users, Wifi, WifiOff } from 'lucide-react';
+import { Monitor, Users, Wifi, WifiOff } from 'lucide-react';
+import { Button, buttonClasses } from '@/components/ui';
 
 interface ActiveSession {
   id: string;
@@ -222,24 +223,30 @@ export default function GameLauncherPage() {
         <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-600">
           <h2 className="text-2xl font-semibold mb-4 text-white">Quick Actions</h2>
           <div className="flex flex-wrap gap-4">
-            <button
-              onClick={loadActiveSessions}
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg border border-green-400"
-            >
+            <Button onClick={loadActiveSessions} disabled={loading} variant="green">
               {loading ? 'Refreshing...' : 'Refresh Status'}
-            </button>
-            <Link
-              href="/lobby"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg border border-blue-400 inline-block"
-            >
+            </Button>
+            <Link href="/lobby" className={buttonClasses('blue')}>
               Back to Lobby
             </Link>
-            <Link
-              href="/games"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg border border-purple-400 inline-block"
-            >
+            <Link href="/games" className={buttonClasses('purple')}>
               Manage Games
+            </Link>
+            {/* Phase 4C Entrypoints */}
+            <Link href="/profiles" className={buttonClasses('amber')}>
+              Profiles
+            </Link>
+            <Link href="/mods" className={buttonClasses('cyan')}>
+              Mods
+            </Link>
+            <Link href="/recordings" className={buttonClasses('teal')}>
+              Recordings
+            </Link>
+            <Link href="/saves" className={buttonClasses('indigo')}>
+              Save States
+            </Link>
+            <Link href="/tournaments" className={buttonClasses('rose')}>
+              Tournaments
             </Link>
           </div>
         </div>

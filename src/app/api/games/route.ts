@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 // GET /api/games - Retrieve all games from database
 export async function GET(request: NextRequest) {
   try {
-    console.log('📚 Loading games from database...');
+  console.warn('Loading games from database...');
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
       prisma.game.count(),
     ]);
 
-    console.log(`✅ Found ${games.length} games in database`);
+    console.warn(`Found ${games.length} games in database`);
     games.forEach((game) => {
-      console.log(`  - ${game.id}: ${game.name}`);
+      console.warn(`  - ${game.id}: ${game.name}`);
     });
 
     // Transform to match the Game interface
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('❌ Error loading games:', error);
+    console.error('Error loading games:', error);
     return NextResponse.json(
       {
         success: false,

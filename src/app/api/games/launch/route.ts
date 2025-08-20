@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
-import { gameLauncher, GameLauncher } from '@/lib/gameLibrary/launcher';
+import { getGameLauncher, GameLauncher } from '@/lib/gameLibrary/launcher';
 import { wireGuardManager } from '@/lib/vpn/wireguard';
 import {
   notifyGameLaunched,
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     const launchConfig = GameLauncher.generateLaunchConfig(session.game, session, vpnConfig);
 
     // Launch the game
-    const gameProcess = await gameLauncher.launchGame(
+  const gameProcess = await getGameLauncher().launchGame(
       sessionId,
       decoded.userId,
       gameId,
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get game process status
-    const gameProcess = gameLauncher.getGameProcess(sessionId, decoded.userId);
+  const gameProcess = getGameLauncher().getGameProcess(sessionId, decoded.userId);
 
     if (!gameProcess) {
       return NextResponse.json({
@@ -235,7 +235,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Terminate the game process
-    const terminated = await gameLauncher.terminateGame(sessionId, decoded.userId);
+  const terminated = await getGameLauncher().terminateGame(sessionId, decoded.userId);
 
     if (!terminated) {
       return NextResponse.json({

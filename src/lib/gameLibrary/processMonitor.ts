@@ -54,7 +54,8 @@ export class ProcessMonitor extends EventEmitter {
 
   constructor() {
     super();
-    this.startMonitoring();
+  // Do not start monitoring at module import time; caller controls lifecycle
+  this.startMonitoring();
   }
 
   /**
@@ -441,16 +442,29 @@ export class ProcessMonitor extends EventEmitter {
   }
 }
 
-// Export singleton instance
-export const processMonitor = new ProcessMonitor();
+// Lazy, process-wide singleton accessor to avoid import-time side effects
+declare global {
+  var __processMonitorSingleton: ProcessMonitor | undefined;
+}
 
-// Cleanup on process exit
-process.on('SIGINT', () => {
-  processMonitor.destroy();
-  process.exit(0);
-});
+export function getProcessMonitor(): ProcessMonitor {
+  if (!globalThis.__processMonitorSingleton) {
+    globalThis.__processMonitorSingleton = new ProcessMonitor();
 
-process.on('SIGTERM', () => {
-  processMonitor.destroy();
-  process.exit(0);
-});
+    // Cleanup on process exit (attach once when instance is created)
+    try {
+      process.once('SIGINT', () => {
+        globalThis.__processMonitorSingleton?.destroy();
+        process.exit(0);
+      });
+      process.once('SIGTERM', () => {
+        globalThis.__processMonitorSingleton?.destroy();
+        process.exit(0);
+      });
+    } catch {
+      // Ignore if signals are unavailable in the current runtime
+    }
+  }
+
+  return globalThis.__processMonitorSingleton;
+}

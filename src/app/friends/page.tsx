@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 import { Friend, FriendRequest } from '@/types';
 import SimpleProtectedRoute from '@/components/auth/SimpleProtectedRoute';
 
@@ -323,9 +324,11 @@ export default function FriendsPage() {
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 {friend.avatar ? (
-                                  <img
+                                  <Image
                                     src={friend.avatar}
                                     alt={friend.username}
+                                    width={48}
+                                    height={48}
                                     className="w-12 h-12 rounded-full"
                                   />
                                 ) : (
@@ -388,9 +391,11 @@ export default function FriendsPage() {
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 {request.sender.avatar ? (
-                                  <img
+                                  <Image
                                     src={request.sender.avatar}
                                     alt={request.sender.username}
+                                    width={48}
+                                    height={48}
                                     className="w-12 h-12 rounded-full"
                                   />
                                 ) : (
@@ -451,9 +456,11 @@ export default function FriendsPage() {
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 {request.receiver.avatar ? (
-                                  <img
+                                  <Image
                                     src={request.receiver.avatar}
                                     alt={request.receiver.username}
+                                    width={48}
+                                    height={48}
                                     className="w-12 h-12 rounded-full"
                                   />
                                 ) : (
@@ -519,9 +526,11 @@ export default function FriendsPage() {
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 {user.avatar ? (
-                                  <img
+                                  <Image
                                     src={user.avatar}
                                     alt={user.username}
+                                    width={48}
+                                    height={48}
                                     className="w-12 h-12 rounded-full"
                                   />
                                 ) : (

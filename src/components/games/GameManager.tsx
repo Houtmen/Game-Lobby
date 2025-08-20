@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Monitor, Users, Play, Square, Clock, Activity, AlertTriangle } from 'lucide-react';
 
 interface ActiveGame {
@@ -265,9 +266,11 @@ export const GameManager: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                           {game.player.avatar ? (
-                            <img
+                            <Image
                               src={game.player.avatar}
                               alt={game.player.username}
+                              width={32}
+                              height={32}
                               className="w-8 h-8 rounded-full"
                             />
                           ) : (

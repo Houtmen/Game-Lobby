@@ -1,38 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FaGoogle, FaDiscord, FaEnvelope } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EnhancedLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSocialLogin = async (provider: 'google' | 'discord') => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const result = await signIn(provider, {
-        callbackUrl: '/lobby',
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Authentication failed. Please try again.');
-      } else if (result?.ok) {
-        router.push('/lobby');
-      }
-    } catch (error) {
-      setError('An unexpected error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSocialLogin = async (_provider: 'google' | 'discord') => {
+    // Social login not configured in current build
+    setError('Social login is temporarily unavailable. Please use email and password.');
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -41,19 +25,10 @@ export default function EnhancedLoginPage() {
     setError('');
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Invalid email or password.');
-      } else if (result?.ok) {
-        router.push('/lobby');
-      }
-    } catch (error) {
-      setError('An unexpected error occurred.');
+      await login(email, password);
+      // login() handles redirect
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed.');
     } finally {
       setIsLoading(false);
     }

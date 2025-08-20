@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function AccountPage() {
   const { user, isLoading } = useAuth();
@@ -34,9 +35,11 @@ export default function AccountPage() {
           <div className="bg-gray-800 rounded-lg p-6 mb-6">
             <div className="flex items-center space-x-4">
               {user.avatar ? (
-                <img
+                <Image
                   src={user.avatar}
                   alt={user.username}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (

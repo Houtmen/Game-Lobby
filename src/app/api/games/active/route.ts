@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
-import { gameLauncher } from '@/lib/gameLibrary/launcher';
+import { getGameLauncher } from '@/lib/gameLibrary/launcher';
 
 // GET /api/games/active - Get all active games across all sessions
 export async function GET(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all running games from the launcher
-    const allRunningGames = gameLauncher.updateAllProcessStatuses();
+  const allRunningGames = getGameLauncher().updateAllProcessStatuses();
 
     // Get session and game details for each running process
     const enrichedGames = await Promise.all(

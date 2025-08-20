@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const platform = url.searchParams.get('platform');
     const search = url.searchParams.get('search');
 
-    let whereClause: any = {
+  const whereClause: any = {
       isActive: true,
     };
 

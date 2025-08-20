@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { gameLauncher } from '@/lib/gameLibrary/launcher';
+import { getGameLauncher } from '@/lib/gameLibrary/launcher';
 
 // GET /api/games/status - Get all running games for user
 export async function GET(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all running games for this user
-    const runningGames = gameLauncher.getAllUserGames(decoded.userId);
+  const runningGames = getGameLauncher().getAllUserGames(decoded.userId);
 
     const gameStatuses = runningGames.map((game: any) => ({
       sessionId: game.sessionId,
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update all process statuses
-    const updatedProcesses = gameLauncher.updateAllProcessStatuses();
+  const updatedProcesses = getGameLauncher().updateAllProcessStatuses();
 
     // Filter for user's processes only
     const userProcesses = updatedProcesses.filter((p: any) => p.userId === decoded.userId);
