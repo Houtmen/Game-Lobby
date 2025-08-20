@@ -210,12 +210,7 @@ export default function GameLauncherPage() {
           <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
             <p className="font-bold">Error</p>
             <p>{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 text-sm inline-flex px-3 py-1 text-white font-semibold rounded-lg border-2 bg-rose-600 hover:bg-rose-700 border-rose-400"
-            >
-              Dismiss
-            </button>
+            <Button onClick={() => setError(null)} variant="rose" padding="sm">Dismiss</Button>
           </div>
         )}
 
@@ -267,10 +262,7 @@ export default function GameLauncherPage() {
               <p className="text-gray-500 mb-4">
                 Join or create a session in the lobby to start playing!
               </p>
-              <Link
-                href="/lobby"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg inline-block"
-              >
+              <Link href="/lobby" className={buttonClasses('blue')}>
                 Go to Lobby
               </Link>
             </div>

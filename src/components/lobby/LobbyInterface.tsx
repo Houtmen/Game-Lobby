@@ -18,6 +18,7 @@ import {
 import { io, Socket } from 'socket.io-client';
 import VPNManager from '@/components/vpn/VPNManager';
 import GameLauncher from '@/components/games/GameLauncher';
+import { Button } from '@/components/ui';
 
 interface GameRoom {
   sessionId: string;
@@ -382,12 +383,7 @@ export const LobbyInterface: React.FC = () => {
                     <FaGamepad className="mr-2" />
                     Active Game Sessions
                   </h2>
-                  <button
-                    onClick={loadActiveSessions}
-                    className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-                  >
-                    Refresh
-                  </button>
+                  <Button onClick={loadActiveSessions} variant="green" padding="sm">Refresh</Button>
                 </div>
 
                 {lobbyState.loadingSessions ? (
@@ -407,12 +403,7 @@ export const LobbyInterface: React.FC = () => {
                               {session.maxPlayers} players
                             </p>
                           </div>
-                          <button
-                            onClick={() => joinSession(session.id)}
-                            className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
-                          >
-                            Join
-                          </button>
+                          <Button onClick={() => joinSession(session.id)} variant="green" padding="sm">Join</Button>
                         </div>
 
                         {session.game.description && (
@@ -469,12 +460,7 @@ export const LobbyInterface: React.FC = () => {
                   placeholder="Type a message..."
                   className="flex-1 bg-gray-700 rounded-l px-3 py-2 text-white placeholder-gray-400"
                 />
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-r"
-                >
-                  <FaPaperPlane />
-                </button>
+                <Button onClick={sendMessage} variant="blue" className="rounded-l-none">Send</Button>
               </div>
             </div>
           </div>
@@ -490,13 +476,10 @@ export const LobbyInterface: React.FC = () => {
                 </h1>
                 <p className="text-gray-300">Room ID: {lobbyState.currentRoom.sessionId}</p>
               </div>
-              <button
-                onClick={leaveRoom}
-                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded flex items-center"
-              >
+              <Button onClick={leaveRoom} variant="amber">
                 <FaSignOutAlt className="mr-2" />
                 Leave Room
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -548,22 +531,20 @@ export const LobbyInterface: React.FC = () => {
               {/* Ready/Start Controls */}
               <div className="mt-6">
                 {isHost ? (
-                  <button
+                  <Button
                     onClick={startGame}
                     disabled={!allPlayersReady || lobbyState.currentRoom.status === 'starting'}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 rounded flex items-center justify-center"
+                    variant="green"
+                    className="w-full justify-center"
                   >
                     <FaPlay className="mr-2" />
                     {lobbyState.currentRoom.status === 'starting' ? 'Starting...' : 'Start Game'}
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
                     onClick={toggleReady}
-                    className={`w-full px-4 py-2 rounded flex items-center justify-center ${
-                      currentPlayer?.isReady
-                        ? 'bg-yellow-600 hover:bg-yellow-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                    }`}
+                    variant={currentPlayer?.isReady ? 'amber' : 'green'}
+                    className="w-full justify-center"
                   >
                     {currentPlayer?.isReady ? (
                       <>
@@ -576,7 +557,7 @@ export const LobbyInterface: React.FC = () => {
                         Ready
                       </>
                     )}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -641,12 +622,7 @@ export const LobbyInterface: React.FC = () => {
                   placeholder="Type a message..."
                   className="flex-1 bg-gray-700 rounded-l px-3 py-2 text-white placeholder-gray-400"
                 />
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-r"
-                >
-                  <FaPaperPlane />
-                </button>
+                <Button onClick={sendMessage} variant="blue" className="rounded-l-none">Send</Button>
               </div>
             </div>
           </div>

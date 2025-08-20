@@ -305,12 +305,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             <span className="text-sm font-medium text-red-800">Launch Error</span>
           </div>
           <p className="text-xs text-red-600 mt-1">{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className="text-xs text-red-600 underline hover:text-red-800 mt-1"
-          >
-            Dismiss
-          </button>
+          <Button onClick={() => setError(null)} variant="rose" padding="sm">Dismiss</Button>
         </div>
       )}
 

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HybridGameNetwork } from '../../lib/networking/hybrid-network';
+import { Button } from '@/components/ui';
 
 interface ConnectionManagerProps {
   sessionId: string;
@@ -219,24 +220,18 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
           </div>
 
           {/* Smart Connect Option */}
-          <button
-            onClick={handleSmartConnect}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
-          >
+          <Button onClick={handleSmartConnect} variant="blue" className="w-full justify-center">
             <span>🤖</span>
             <span>Smart Connect (Recommended)</span>
-          </button>
+          </Button>
           <div className="text-xs text-gray-500 -mt-2 px-4">
             Automatically chooses the best connection method
           </div>
 
           {/* Advanced Options Toggle */}
-          <button
-            onClick={() => setShowOptions(!showOptions)}
-            className="text-sm text-gray-600 hover:text-gray-800 underline"
-          >
+          <Button onClick={() => setShowOptions(!showOptions)} variant="gray" padding="sm">
             {showOptions ? 'Hide' : 'Show'} advanced options
-          </button>
+          </Button>
 
           {/* Advanced Connection Options */}
           {showOptions && (
@@ -244,37 +239,19 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
               <div className="text-sm font-medium text-gray-700 mb-2">Manual Connection:</div>
 
               {/* WebRTC Option */}
-              <button
-                onClick={() => {
-                  /* Force WebRTC logic could be added */
-                }}
-                disabled={!webrtcAvailable}
-                className={`w-full ${
-                  webrtcAvailable
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                } font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2`}
-              >
+              <Button onClick={() => { /* Force WebRTC */ }} disabled={!webrtcAvailable} variant="green" className="w-full justify-center">
                 <span>🌐</span>
                 <span>WebRTC Only (Instant)</span>
-              </button>
+              </Button>
               <div className="text-xs text-gray-500 -mt-1 px-4">
                 Browser-based P2P connection, no downloads needed
               </div>
 
               {/* VPN Option */}
-              <button
-                onClick={handleForceVPN}
-                disabled={!vpnAvailable}
-                className={`w-full ${
-                  vpnAvailable
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                } font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2`}
-              >
+              <Button onClick={handleForceVPN} disabled={!vpnAvailable} variant="purple" className="w-full justify-center">
                 <span>🔒</span>
                 <span>VPN Only (Secure)</span>
-              </button>
+              </Button>
               <div className="text-xs text-gray-500 -mt-1 px-4">
                 {vpnAvailable
                   ? 'Secure tunnel for game traffic only'
@@ -348,28 +325,10 @@ export const HybridConnectionManager: React.FC<ConnectionManagerProps> = ({
 
           <div className="flex gap-3">
             {gameConfig.executablePath && (
-              <button
-                onClick={() => {
-                  // Add game launcher logic here
-                  console.log('🚀 Launching game:', gameConfig.executablePath);
-                  console.log('🎯 With parameters:', gameConfig.launchParameters);
-                  // For now, just show instructions - actual launching would need backend API
-                  alert(
-                    `Game launcher not implemented yet. Please launch:\n${gameConfig.executablePath}\n${gameConfig.launchParameters || ''}`
-                  );
-                }}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-              >
-                🚀 Launch Game
-              </button>
+              <Button onClick={() => { console.log('🚀 Launching game:', gameConfig.executablePath); alert(`Game launcher not implemented yet. Please launch:\n${gameConfig.executablePath}\n${gameConfig.launchParameters || ''}`); }} variant="green" className="flex-1">🚀 Launch Game</Button>
             )}
-
-            <button
-              onClick={handleDisconnect}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-            >
-              Disconnect
-            </button>
+            
+            <Button onClick={handleDisconnect} variant="rose" className="flex-1">Disconnect</Button>
           </div>
         </div>
       )}

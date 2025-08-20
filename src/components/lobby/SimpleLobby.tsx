@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { HybridConnectionManager } from './HybridConnectionManager';
+import { Button } from '@/components/ui';
 
 interface Game {
   id: string;
@@ -306,15 +307,7 @@ export default function SimpleLobby() {
               <h2 className="text-xl font-bold text-white">
                 {selectedGameForSession ? 'Configure Session' : 'Select a Game'}
               </h2>
-              <button
-                onClick={() => {
-                  setShowGameSelection(false);
-                  setSelectedGameForSession(null);
-                }}
-                className="text-gray-400 hover:text-white text-2xl"
-              >
-                ×
-              </button>
+              <Button onClick={() => { setShowGameSelection(false); setSelectedGameForSession(null); }} variant="gray" padding="sm">Close</Button>
             </div>
 
             {!selectedGameForSession ? (
@@ -375,18 +368,8 @@ export default function SimpleLobby() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => setSelectedGameForSession(null)}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium border border-gray-400"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={() => createSessionWithGame(selectedGameForSession)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium border border-blue-400"
-                  >
-                    Create Session
-                  </button>
+                  <Button onClick={() => setSelectedGameForSession(null)} variant="gray" className="flex-1">Back</Button>
+                  <Button onClick={() => createSessionWithGame(selectedGameForSession)} variant="blue" className="flex-1">Create Session</Button>
                 </div>
               </div>
             )}
@@ -403,12 +386,7 @@ export default function SimpleLobby() {
                 <h3 className="text-xl font-semibold text-white">
                   Connect to {selectedSession.game.name}
                 </h3>
-                <button
-                  onClick={closeConnectionManager}
-                  className="text-gray-400 hover:text-white text-2xl"
-                >
-                  ×
-                </button>
+                <Button onClick={closeConnectionManager} variant="gray" padding="sm">Close</Button>
               </div>
 
               <div className="mb-4 text-sm text-gray-300">
@@ -470,25 +448,9 @@ export default function SimpleLobby() {
         <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-600">
           <h2 className="text-2xl font-semibold mb-4 text-white">Create New Session</h2>
           <div className="text-center">
-            <button
-              onClick={createSession}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg mr-4 border border-blue-400"
-            >
-              Create New Session
-            </button>
-            <button
-              onClick={loadSessions}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg mr-4 border border-green-400"
-            >
-              Refresh Sessions
-            </button>
-            <button
-              onClick={scanForGames}
-              disabled={loading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg border border-purple-400"
-            >
-              {loading ? 'Scanning...' : 'Scan for Games'}
-            </button>
+            <Button onClick={createSession} variant="blue">Create New Session</Button>
+            <Button onClick={loadSessions} variant="green">Refresh Sessions</Button>
+            <Button onClick={scanForGames} disabled={loading} variant="purple">{loading ? 'Scanning...' : 'Scan for Games'}</Button>
           </div>
         </div>
 
@@ -498,16 +460,9 @@ export default function SimpleLobby() {
             <h2 className="text-2xl font-semibold text-white">
               {showAllSessions ? 'All Game Sessions' : 'Active Game Sessions'}
             </h2>
-            <button
-              onClick={() => setShowAllSessions(!showAllSessions)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors border ${
-                showAllSessions
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-400'
-                  : 'bg-green-600 hover:bg-green-700 text-white border-green-400'
-              }`}
-            >
+            <Button onClick={() => setShowAllSessions(!showAllSessions)} variant={showAllSessions ? 'amber' : 'green'}>
               {showAllSessions ? 'Show Active Only' : 'Show All Sessions'}
-            </button>
+            </Button>
           </div>
 
           {loading ? (
@@ -578,29 +533,14 @@ export default function SimpleLobby() {
                           <>
                             {/* Check if user is the host */}
                             {session.host?.id === user?.id ? (
-                              <button
-                                onClick={() => deleteSession(session.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium border border-red-400"
-                              >
-                                Delete
-                              </button>
+                              <Button onClick={() => deleteSession(session.id)} variant="rose" padding="sm">Delete</Button>
                             ) : (
                               <>
                                 {/* Check if user is already in the session */}
                                 {session.players?.some((p) => p.user.id === user?.id) ? (
-                                  <button
-                                    onClick={() => leaveSession(session.id)}
-                                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-medium border border-yellow-400"
-                                  >
-                                    Leave
-                                  </button>
+                                  <Button onClick={() => leaveSession(session.id)} variant="amber" padding="sm">Leave</Button>
                                 ) : (
-                                  <button
-                                    onClick={() => joinSession(session.id)}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium border border-green-400"
-                                  >
-                                    Join
-                                  </button>
+                                  <Button onClick={() => joinSession(session.id)} variant="green" padding="sm">Join</Button>
                                 )}
                               </>
                             )}
