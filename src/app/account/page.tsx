@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { Button } from '@/components/ui';
 
 export default function AccountPage() {
   const { user, isLoading } = useAuth();
@@ -95,18 +96,10 @@ export default function AccountPage() {
           <div className="bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
-                Edit Profile
-              </button>
-              <button className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md transition-colors">
-                Change Password
-              </button>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition-colors">
-                Privacy Settings
-              </button>
-              <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors">
-                Game Library
-              </button>
+              <Button variant="blue">Edit Profile</Button>
+              <Button variant="gray">Change Password</Button>
+              <Button variant="purple">Privacy Settings</Button>
+              <Button variant="green">Game Library</Button>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import { Friend, FriendRequest } from '@/types';
 import SimpleProtectedRoute from '@/components/auth/SimpleProtectedRoute';
+import { Button } from '@/components/ui';
 
 interface UserSearchResult {
   id: string;
@@ -215,23 +216,18 @@ export default function FriendsPage() {
           <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-600">
             <h2 className="text-2xl font-semibold mb-4 text-white">Friend Management</h2>
             <div className="flex flex-wrap gap-4">
-              <button
+              <Button
                 onClick={() => setActiveTab('friends')}
-                className={
-                  activeTab === 'friends'
-                    ? 'bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                }
+                variant="blue"
+                padding="md"
               >
                 Friends ({friendsData.friends.length})
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setActiveTab('received')}
-                className={
-                  activeTab === 'received'
-                    ? 'bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative'
-                    : 'bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative'
-                }
+                variant="green"
+                padding="md"
+                className="relative"
               >
                 Received ({friendsData.receivedRequests.length})
                 {friendsData.receivedRequests.length > 0 && (
@@ -239,27 +235,21 @@ export default function FriendsPage() {
                     {friendsData.receivedRequests.length}
                   </span>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setActiveTab('sent')}
-                className={
-                  activeTab === 'sent'
-                    ? 'bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                    : 'bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                }
+                variant="amber"
+                padding="md"
               >
                 Sent ({friendsData.sentRequests.length})
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setActiveTab('search')}
-                className={
-                  activeTab === 'search'
-                    ? 'bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                    : 'bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors'
-                }
+                variant="purple"
+                padding="md"
               >
                 Find Players
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -307,12 +297,7 @@ export default function FriendsPage() {
                         <p className="text-gray-500 mb-4">
                           Find other players and send them friend requests!
                         </p>
-                        <button
-                          onClick={() => setActiveTab('search')}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                        >
-                          Find Players
-                        </button>
+                        <Button onClick={() => setActiveTab('search')} variant="blue">Find Players</Button>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -352,18 +337,8 @@ export default function FriendsPage() {
                               </div>
                             </div>
                             <div className="flex space-x-2">
-                              <button
-                                onClick={() => alert('Game invite feature coming soon!')}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors"
-                              >
-                                Invite to Game
-                              </button>
-                              <button
-                                onClick={() => removeFriend(friend.friendshipId)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors"
-                              >
-                                Remove
-                              </button>
+                              <Button onClick={() => alert('Game invite feature coming soon!')} variant="blue" padding="sm">Invite to Game</Button>
+                              <Button onClick={() => removeFriend(friend.friendshipId)} variant="rose" padding="sm">Remove</Button>
                             </div>
                           </div>
                         ))}
@@ -417,18 +392,8 @@ export default function FriendsPage() {
                               </div>
                             </div>
                             <div className="flex space-x-2">
-                              <button
-                                onClick={() => acceptFriendRequest(request.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors"
-                              >
-                                Accept
-                              </button>
-                              <button
-                                onClick={() => declineFriendRequest(request.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors"
-                              >
-                                Decline
-                              </button>
+                              <Button onClick={() => acceptFriendRequest(request.id)} variant="green" padding="sm">Accept</Button>
+                              <Button onClick={() => declineFriendRequest(request.id)} variant="rose" padding="sm">Decline</Button>
                             </div>
                           </div>
                         ))}
@@ -555,12 +520,7 @@ export default function FriendsPage() {
                             </div>
                             <div>
                               {user.friendshipStatus === 'none' && (
-                                <button
-                                  onClick={() => sendFriendRequest(user.username)}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors"
-                                >
-                                  Add Friend
-                                </button>
+                                <Button onClick={() => sendFriendRequest(user.username)} variant="blue" padding="sm">Add Friend</Button>
                               )}
                               {user.friendshipStatus === 'friends' && (
                                 <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
@@ -574,22 +534,8 @@ export default function FriendsPage() {
                               )}
                               {user.friendshipStatus === 'request_received' && (
                                 <div className="flex space-x-2">
-                                  <button
-                                    onClick={() =>
-                                      user.friendshipId && acceptFriendRequest(user.friendshipId)
-                                    }
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded-md text-sm transition-colors"
-                                  >
-                                    Accept
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      user.friendshipId && declineFriendRequest(user.friendshipId)
-                                    }
-                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded-md text-sm transition-colors"
-                                  >
-                                    Decline
-                                  </button>
+                                  <Button onClick={() => user.friendshipId && acceptFriendRequest(user.friendshipId)} variant="green" padding="sm">Accept</Button>
+                                  <Button onClick={() => user.friendshipId && declineFriendRequest(user.friendshipId)} variant="rose" padding="sm">Decline</Button>
                                 </div>
                               )}
                             </div>
