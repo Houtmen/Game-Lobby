@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { getGameLauncher } from '@/lib/gameLibrary/launcher';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/games/status - Get all running games for user
 export async function GET(request: NextRequest) {
   try {

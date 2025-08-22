@@ -135,6 +135,24 @@ model GameSession {
   @@map("game_sessions")
 }
 
+// Canonical catalog of available games (e.g., from GameRanger)
+model GameCatalog {
+  id             String   @id @default(cuid())
+  provider       String   // e.g., 'gameranger'
+  name           String
+  slug           String   @unique
+  aliases        Json?
+  tags           Json?
+  suggestedPaths Json?    // array of strings (install path suggestions)
+  defaultExecs   Json?    // array of filename patterns to consider
+  requiresVPN    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, name])
+  @@map("game_catalog")
+}
+
 model SessionPlayer {
   id        String       @id @default(cuid())
   sessionId String

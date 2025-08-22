@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+  "db:seed:catalog": "tsx prisma/seed-catalog.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate"
   },

@@ -29,6 +29,11 @@ export default function GameLibraryManager() {
   const [manualName, setManualName] = useState('');
   const [customPaths, setCustomPaths] = useState<string[]>([]);
   const [newCustomPath, setNewCustomPath] = useState('');
+  // Catalog state (All Available Games)
+  const [catalog, setCatalog] = useState<{ name: string; suggestedPaths?: string[] }[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalogSearch, setCatalogSearch] = useState('');
 
   // Helper function to get auth headers
   const getAuthHeaders = () => {
@@ -42,8 +47,26 @@ export default function GameLibraryManager() {
   useEffect(() => {
     if (user) {
       loadGames();
+      loadCatalog();
     }
   }, [user]);
+
+  // Persist custom scan paths across sessions (localStorage)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('customScanPaths');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setCustomPaths(parsed.filter((p) => typeof p === 'string'));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('customScanPaths', JSON.stringify(customPaths));
+    } catch {}
+  }, [customPaths]);
 
   const loadGames = async () => {
     try {
@@ -61,6 +84,29 @@ export default function GameLibraryManager() {
       setError('Failed to load games');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCatalog = async () => {
+    try {
+      setCatalogLoading(true);
+      setCatalogError(null);
+      const res = await fetch('/api/games/catalog');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const list = Array.isArray(data?.games) ? data.games : [];
+      // Ensure shape
+      setCatalog(
+        list.map((g: any) => ({
+          name: String(g?.name ?? ''),
+          suggestedPaths: Array.isArray(g?.suggestedPaths) ? g.suggestedPaths : [],
+        }))
+      );
+    } catch (e) {
+      console.error('Error loading catalog:', e);
+      setCatalogError('Failed to load available games');
+    } finally {
+      setCatalogLoading(false);
     }
   };
 
@@ -108,21 +154,25 @@ export default function GameLibraryManager() {
       setScanning(true);
       setError(null);
 
-      const response = await fetch('/api/games/scan', {
+      // Use locate endpoint to validate and persist UserGame association
+      const response = await fetch('/api/games/locate', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          manualPath: manualPath.trim(),
+          selectedPath: manualPath.trim(),
           gameName: manualName.trim() || undefined,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add game');
+        let msg = 'Failed to add game';
+        try {
+          const errorData = await response.json();
+          msg = errorData?.error || msg;
+        } catch {}
+        throw new Error(msg);
       }
-
-      const result = await response.json();
+      // No need to use the returned payload; server already persisted
 
       // Show success message
       setError(`✅ Game added successfully!`);
@@ -399,6 +449,76 @@ export default function GameLibraryManager() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* All Available Games (Catalog) */}
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-600 mt-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">All Available Games</h2>
+              <p className="text-sm text-gray-400">
+                {catalogLoading ? 'Loading…' : `${catalog.length} games from catalog`}
+              </p>
+            </div>
+            <div className="w-full md:w-80">
+              <input
+                type="text"
+                placeholder="Search catalog…"
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {catalogError && (
+            <div className="mb-4 text-rose-300">{catalogError}</div>
+          )}
+
+          {!catalogLoading && catalog.length > 0 && (
+            <div className="max-h-[540px] overflow-auto divide-y divide-gray-700">
+              {catalog
+                .filter((c) => c.name.toLowerCase().includes(catalogSearch.toLowerCase()))
+                .map((c) => {
+                  const installed = games.some((g) => g.name.toLowerCase() === c.name.toLowerCase());
+                  return (
+                    <div key={c.name} className="py-3 flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-white font-medium">{c.name}</div>
+                        {c.suggestedPaths && c.suggestedPaths.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {c.suggestedPaths.slice(0, 4).map((p) => (
+                              <button
+                                key={p}
+                                type="button"
+                                title="Use this path"
+                                onClick={() => { setManualPath(p); setManualName(c.name); setShowManualAdd(true); }}
+                                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-1 rounded border border-gray-600"
+                              >
+                                {p}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="shrink-0 flex items-center gap-2">
+                        {installed ? (
+                          <span className="text-xs px-2 py-1 rounded bg-green-800 text-green-200">Installed</span>
+                        ) : (
+                          <Button
+                            variant="blue"
+                            padding="sm"
+                            onClick={() => { setManualName(c.name); setShowManualAdd(true); }}
+                          >
+                            Add
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>

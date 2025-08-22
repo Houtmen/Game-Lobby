@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Game } from '@/types';
 import {
   FaPlus,
@@ -390,17 +390,130 @@ function AvailableGamesModal({
   onClose: () => void;
   onAddGame: (data: Partial<Game>) => Promise<void>;
 }) {
+  const [catalog, setCatalog] = useState<{ name: string; suggestedPaths: string[] }[]>([]);
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
+  const [customPath, setCustomPath] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/games/catalog');
+        const data = await res.json();
+        if (mounted) setCatalog(data.games || []);
+      } catch (e) {
+        console.error('Failed to load catalog', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return (catalog || []).filter((g) => !term || g.name.toLowerCase().includes(term));
+  }, [catalog, search]);
+
+  const handleAdd = async (gameName: string, selectedPath?: string) => {
+    try {
+      setAdding(true);
+      let payload: Partial<Game> | null = null;
+      if (selectedPath) {
+        const res = await fetch('/api/games/locate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gameName, selectedPath }),
+        });
+        const data = await res.json();
+        if (data?.valid && data.game?.executablePath) {
+          payload = {
+            name: data.game.name,
+            executable: data.game.executablePath,
+            executablePath: data.game.executablePath,
+            supportedPlatforms: ['windows'],
+            requiresVPN: true,
+          } as Partial<Game>;
+        } else {
+          alert('Could not find a valid executable in that location. Please select the game .exe');
+          return;
+        }
+      }
+      if (payload) {
+        await onAddGame(payload);
+        onClose();
+      }
+    } finally {
+      setAdding(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Browse Available Games</h3>
-        <p className="text-gray-600 mb-4">Game catalog browser coming next...</p>
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-        >
-          Close
-        </button>
+      <div className="bg-white rounded-lg p-0 w-full max-w-5xl mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="p-4 border-b flex items-center gap-3">
+          <h3 className="text-lg font-semibold">Browse Games (GameRanger)</h3>
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search games..."
+              className="px-3 py-2 border rounded-lg w-64"
+            />
+            <button onClick={onClose} className="px-3 py-2 border rounded-lg">Close</button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="p-6 text-gray-600">Loading catalog…</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+              {filtered.map((g) => (
+                <div
+                  key={g.name}
+                  className={`border rounded-lg p-4 hover:shadow transition ${selected === g.name ? 'ring-2 ring-blue-500' : ''}`}
+                  onClick={() => setSelected(g.name)}
+                >
+                  <div className="font-semibold mb-2 truncate" title={g.name}>{g.name}</div>
+                  <div className="text-xs text-gray-500 mb-2">Suggested locations:</div>
+                  <ul className="text-xs text-gray-600 space-y-1 max-h-24 overflow-y-auto">
+                    {g.suggestedPaths.slice(0, 5).map((p) => (
+                      <li key={p} className="truncate" title={p}>{p}</li>
+                    ))}
+                  </ul>
+                  {selected === g.name && (
+                    <div className="mt-3 space-y-2">
+                      <input
+                        value={customPath}
+                        onChange={(e) => setCustomPath(e.target.value)}
+                        placeholder="Paste the folder or .exe path here"
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          disabled={!customPath || adding}
+                          onClick={(e) => { e.stopPropagation(); handleAdd(g.name, customPath); }}
+                          className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                        >
+                          {adding ? 'Adding…' : 'Add from this path'}
+                        </button>
+                      </div>
+                      <div className="text-xs text-gray-500">Tip: choose the game installation folder or the game .exe directly.</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <div className="p-6 text-gray-600">No games match your search.</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

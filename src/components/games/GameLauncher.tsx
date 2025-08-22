@@ -271,7 +271,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             Launch Game
           </Button>
 
-          {isGameRunning && (
+          {isGameRunning ? (
             <Button onClick={terminateGame} disabled={!canTerminate} variant="rose">
               {isTerminating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -280,7 +280,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
               )}
               Stop Game
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
 

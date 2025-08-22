@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { gameScanner } from '@/lib/gameLibrary/scanner';
 import { getAuthenticatedUser } from '@/lib/auth/utils';
 
+// Ensure Node.js runtime (scanner touches filesystem)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // POST /api/games/scan - Scan system for installed games and add them
 export async function POST(request: NextRequest) {
   try {

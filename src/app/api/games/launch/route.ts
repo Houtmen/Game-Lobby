@@ -9,6 +9,10 @@ import {
   notifyGameStatusChange,
 } from '@/lib/socket/server';
 
+// Run on Node.js (uses child_process/fs under the hood)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // POST /api/games/launch - Launch a game
 export async function POST(request: NextRequest) {
   try {
